@@ -2,10 +2,14 @@ name: Mirror to personal
 
 on:
   push:
-    branches: [ main ]   # change if needed
+    branches: [ main ]      # change if your default isn't 'main'
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 3 * * *"     # optional nightly sync
+
+concurrency:
+  group: mirror-${{ github.repository }}
+  cancel-in-progress: false
 
 jobs:
   mirror:
@@ -13,25 +17,49 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout full history
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Configure git
+      - name: Configure Git identity & safety
         run: |
-          git config user.name "mirror-bot"
+          git config user.name  "mirror-bot"
           git config user.email "mirror-bot@users.noreply.github.com"
+          # avoid rare "detected dubious ownership" warnings
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Push branches & tags
+      - name: Add/update mirror remote
         env:
-          MIRROR_PAT: ${{ secrets.MIRROR_PAT }}
+          MIRROR_PAT:   ${{ secrets.MIRROR_PAT }}
           MIRROR_OWNER: ${{ secrets.MIRROR_OWNER }}
-          MIRROR_REPO: ${{ secrets.MIRROR_REPO }}
+          MIRROR_REPO:  ${{ secrets.MIRROR_REPO }}
         run: |
           set -euo pipefail
           MIRROR_URL="https://x-access-token:${MIRROR_PAT}@github.com/${MIRROR_OWNER}/${MIRROR_REPO}.git"
-          git remote add mirror "$MIRROR_URL"
-          # sync branches
+          if git remote get-url mirror >/dev/null 2>&1; then
+            git remote set-url mirror "$MIRROR_URL"
+          else
+            git remote add mirror "$MIRROR_URL"
+          fi
+
+      # Uncomment if you use submodules and/or Git LFS
+      # - name: Submodules & LFS (optional)
+      #   run: |
+      #     git submodule update --init --recursive
+      #     git lfs install
+      #     git lfs fetch --all || true
+
+      - name: Push branches & tags (prune)
+        run: |
+          set -euo pipefail
+          # Push all branches; prune removes deleted branches on the mirror
           git push --prune mirror +refs/heads/*:refs/heads/*
-          # sync tags
+          # Push all tags (ignore if none)
           git push --prune mirror +refs/tags/*:refs/tags/* || true
+
+      # If you want a true 1:1 mirror (all refs, force), replace the step above with:
+      # - name: Push full mirror (force)
+      #   run: |
+      #     set -euo pipefail
+      #     git push --mirror mirror
