@@ -1,0 +1,37 @@
+name: Mirror to personal
+
+on:
+  push:
+    branches: [ main ]   # change if needed
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *"
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "mirror-bot"
+          git config user.email "mirror-bot@users.noreply.github.com"
+
+      - name: Push branches & tags
+        env:
+          MIRROR_PAT: ${{ secrets.MIRROR_PAT }}
+          MIRROR_OWNER: ${{ secrets.MIRROR_OWNER }}
+          MIRROR_REPO: ${{ secrets.MIRROR_REPO }}
+        run: |
+          set -euo pipefail
+          MIRROR_URL="https://x-access-token:${MIRROR_PAT}@github.com/${MIRROR_OWNER}/${MIRROR_REPO}.git"
+          git remote add mirror "$MIRROR_URL"
+          # sync branches
+          git push --prune mirror +refs/heads/*:refs/heads/*
+          # sync tags
+          git push --prune mirror +refs/tags/*:refs/tags/* || true
