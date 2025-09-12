@@ -5,7 +5,7 @@ on:
     branches: [ main ]      # change if your default isn't 'main'
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * *"     # optional nightly sync
+    - cron: "0 3 * * *"
 
 concurrency:
   group: mirror-${{ github.repository }}
@@ -16,6 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      MIRROR_PAT:   ${{ secrets.MIRROR_PAT }}
+      MIRROR_OWNER: ${{ secrets.MIRROR_OWNER }}
+      MIRROR_REPO:  ${{ secrets.MIRROR_REPO }}
+
     steps:
       - name: Checkout full history
         uses: actions/checkout@v4
@@ -26,22 +31,37 @@ jobs:
         run: |
           git config user.name  "mirror-bot"
           git config user.email "mirror-bot@users.noreply.github.com"
-          # avoid rare "detected dubious ownership" warnings
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Add/update mirror remote
-        env:
-          MIRROR_PAT:   ${{ secrets.MIRROR_PAT }}
-          MIRROR_OWNER: ${{ secrets.MIRROR_OWNER }}
-          MIRROR_REPO:  ${{ secrets.MIRROR_REPO }}
+      - name: Validate required secrets
+        run: |
+          set -euo pipefail
+          for v in MIRROR_PAT MIRROR_OWNER MIRROR_REPO; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::Secret $v is empty or not set"
+              exit 1
+            fi
+          done
+
+      - name: Build mirror URL (masked) & add/update remote
         run: |
           set -euo pipefail
           MIRROR_URL="https://x-access-token:${MIRROR_PAT}@github.com/${MIRROR_OWNER}/${MIRROR_REPO}.git"
+          # Show target (without token) for debugging
+          echo "Target: https://github.com/${MIRROR_OWNER}/${MIRROR_REPO}.git"
+
           if git remote get-url mirror >/dev/null 2>&1; then
             git remote set-url mirror "$MIRROR_URL"
           else
             git remote add mirror "$MIRROR_URL"
           fi
+
+      - name: Authentication probe (ls-remote)
+        run: |
+          set -euo pipefail
+          # This will 403 if the token can't access the mirror repo
+          git ls-remote mirror >/dev/null
+          echo "Auth OK: can access mirror repo."
 
       # Uncomment if you use submodules and/or Git LFS
       # - name: Submodules & LFS (optional)
@@ -53,13 +73,5 @@ jobs:
       - name: Push branches & tags (prune)
         run: |
           set -euo pipefail
-          # Push all branches; prune removes deleted branches on the mirror
           git push --prune mirror +refs/heads/*:refs/heads/*
-          # Push all tags (ignore if none)
           git push --prune mirror +refs/tags/*:refs/tags/* || true
-
-      # If you want a true 1:1 mirror (all refs, force), replace the step above with:
-      # - name: Push full mirror (force)
-      #   run: |
-      #     set -euo pipefail
-      #     git push --mirror mirror
