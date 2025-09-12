@@ -203,7 +203,7 @@ export default function ShinePage() {
       >
         <div className="w-full overflow-hidden">
           <img 
-            src="/images/mountain.png" 
+            src="/mountain.png" 
             alt="Shine" 
             width={1200} 
             height={400} 
