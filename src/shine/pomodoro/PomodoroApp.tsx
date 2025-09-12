@@ -562,7 +562,7 @@ export default function PomodoroApp() {
                 >
                   <CardHeader>
                     <CardTitle className="text-lg font-bold text-black font-playfair border-b-2 border-black pb-2">
-                      TODAY'S TASKS
+                      TODAY&apos;S TASKS
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -780,7 +780,7 @@ export default function PomodoroApp() {
                   >
                     <CardContent className="p-6">
                       <div className="text-3xl font-bold text-black font-playfair">{completedPomodoros}</div>
-                      <div className="text-sm text-gray-600 font-bold tracking-wider">TODAY'S SESSIONS</div>
+                      <div className="text-sm text-gray-600 font-bold tracking-wider">TODAY&apos;S SESSIONS</div>
                     </CardContent>
                   </Card>
                   <Card 
@@ -839,7 +839,7 @@ export default function PomodoroApp() {
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="font-bold">Today's Progress:</span>
+                        <span className="font-bold">Today&apos;s Progress:</span>
                         <span>{Math.round((completedTasks / Math.max(tasks.length, 1)) * 100)}% tasks completed</span>
                       </div>
                     </div>

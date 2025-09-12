@@ -355,7 +355,7 @@ export default function JournalApp() {
                       {selectedPrompt && (
                         <div className="mb-4 p-3 bg-yellow-50 border-2 border-yellow-300" style={{ borderRadius: '0px' }}>
                           <div className="text-sm font-bold text-yellow-800 mb-1">REFLECTION PROMPT</div>
-                          <div className="text-sm text-yellow-700 italic">"{selectedPrompt}"</div>
+                          <div className="text-sm text-yellow-700 italic">&ldquo;{selectedPrompt}&rdquo;</div>
                         </div>
                       )}
 

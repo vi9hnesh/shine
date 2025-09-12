@@ -1,22 +1,3 @@
-import { LogoIcon } from '@/components/logo'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Keyboard, 
-  Timer, 
-  PenTool,
-  Wind, 
-  Mountain,
-  Heart,
-  Star,
-  FileText,
-  Coffee,
-  Headphones,
-  Newspaper
-} from 'lucide-react'
-import Link from 'next/link'
-
 export default function ShineHeroSection() {
     return (
         <section>
