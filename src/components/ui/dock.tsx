@@ -116,87 +116,92 @@ const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
   )
 }
 
-const DockIconButton = React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
-  ({ icon: Icon, label, onClick, className, isActive = false, showLabel = false }, ref) => {
-    const [isHovered, setIsHovered] = React.useState(false);
 
-    return (
-      <motion.button
-        ref={ref}
-        whileHover={{ 
-          scale: 1.05, 
-          y: -3,
-          transition: { 
-            type: "spring", 
-            stiffness: 300, 
-            damping: 20 
-          }
-        }}
-        whileTap={{ 
-          scale: 0.95,
-          transition: { duration: 0.1 }
-        }}
-        onClick={onClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className={cn(
-          "relative group p-3 rounded-none border-2 border-black",
-          "bg-white hover:bg-gray-100 transition-colors duration-200",
-          "focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2",
-          isActive && "bg-black text-white hover:bg-gray-800",
-          className
-        )}
-        style={{
-          boxShadow: '3px 3px 0px 0px rgba(0,0,0,1)',
-        }}
-      >
-        <Icon className={cn(
-          "w-5 h-5 transition-colors",
-          isActive ? "text-white" : "text-black"
-        )} />
-        
-        {/* Tooltip */}
-        <AnimatePresence>
-          {isHovered && (
-            <motion.div
-              initial={{ opacity: 0, y: 5, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 5, scale: 0.9 }}
-              transition={{ duration: 0.15 }}
-              className={cn(
-                "absolute -top-12 left-1/2 -translate-x-1/2",
-                "px-2 py-1 border-2 border-black bg-white text-black",
-                "text-xs font-medium whitespace-nowrap pointer-events-none z-50"
-              )}
-              style={{
-                boxShadow: '2px 2px 0px 0px rgba(0,0,0,1)',
-              }}
-            >
-              {label}
-              {/* Arrow */}
-              <div 
-                className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
-                style={{
-                  borderLeft: '4px solid transparent',
-                  borderRight: '4px solid transparent',
-                  borderTop: '4px solid black',
-                }}
-              />
-            </motion.div>
+const DockIconButton = React.memo(
+  React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
+    (
+      { icon: Icon, label, onClick, className, isActive = false, showLabel = false },
+      ref
+    ) => {
+      const [isHovered, setIsHovered] = React.useState(false)
+
+      return (
+        <motion.button
+          ref={ref}
+          whileHover={{
+            scale: 1.08,
+            y: -2,
+            transition: {
+              type: "spring",
+              stiffness: 200,
+              damping: 15
+            }
+          }}
+          whileTap={{
+            scale: 0.95,
+            transition: { duration: 0.1 }
+          }}
+          onClick={onClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className={cn(
+            "relative group p-2 rounded-xl bg-white/70 backdrop-blur-md shadow-md",
+            "sm:p-3 sm:rounded-none sm:border-2 sm:border-black sm:bg-white sm:shadow-none",
+            "hover:bg-white/80 transition-colors duration-200",
+            "focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2",
+            isActive && "bg-black text-white hover:bg-gray-800",
+            className
           )}
-        </AnimatePresence>
+        >
+          <Icon
+            className={cn(
+              "w-7 h-7 sm:w-5 sm:h-5 transition-colors",
+              isActive ? "text-white" : "text-black"
+            )}
+          />
 
-        {/* Persistent label if enabled */}
-        {showLabel && (
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium text-black whitespace-nowrap">
-            {label}
-          </div>
-        )}
-      </motion.button>
-    )
-  }
+          {/* Tooltip for desktop */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                initial={{ opacity: 0, y: 5, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 5, scale: 0.9 }}
+                transition={{ duration: 0.15 }}
+                className={cn(
+                  "hidden sm:block absolute -top-12 left-1/2 -translate-x-1/2",
+                  "px-2 py-1 border-2 border-black bg-white text-black",
+                  "text-xs font-medium whitespace-nowrap pointer-events-none z-50"
+                )}
+                style={{ boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)" }}
+              >
+                {label}
+                {/* Arrow */}
+                <div
+                  className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
+                  style={{
+                    borderLeft: "4px solid transparent",
+                    borderRight: "4px solid transparent",
+                    borderTop: "4px solid black"
+                  }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Persistent label for mobile or when explicitly shown */}
+          {(showLabel || true) && (
+            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-black whitespace-nowrap sm:hidden">
+              {label}
+            </div>
+          )}
+        </motion.button>
+      )
+    }
+  )
 )
 DockIconButton.displayName = "DockIconButton"
+
 
 const Dock = React.forwardRef<HTMLDivElement, DockProps>(
   ({ items, className, showLabels = false, currentTime }, ref) => {
@@ -236,66 +241,65 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
       }
     ];
 
-    return (
-      <>
-        <div ref={ref} className={cn("fixed bottom-6 left-1/2 -translate-x-1/2 z-50", className)}>
+      return (
+        <>
           <div
+            ref={ref}
             className={cn(
-              "flex items-center gap-1 p-2 border-2 border-black bg-white",
-              "backdrop-blur-sm",
+              "fixed left-1/2 -translate-x-1/2 z-50 bottom-4 sm:bottom-6",
+              className
             )}
-            style={{
-              boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
-              borderRadius: '0px'
-            }}
           >
-            {/* App Icons */}
-            {dockItemsWithLaunchpad.map((item, index) => (
-              <div key={`${item.label}-${index}`}>
-                <DockIconButton {...item} showLabel={showLabels} />
-              </div>
-            ))}
-
-            {/* Separator */}
-            {currentTime && (
-              <div className="w-px h-8 bg-black mx-2" />
-            )}
-
-            {/* Date & Time Display */}
-            {currentTime && (
-              <div className="flex items-center gap-2 px-3">
-                <div className="flex items-center gap-2 border-2 border-black px-2 py-1 bg-white">
-                  <Calendar className="w-4 h-4 text-black" />
-                  <span className="text-xs font-medium text-black">{formatDate(currentTime)}</span>
+            <div
+              className={cn(
+                "flex items-center gap-6 px-4 py-3 rounded-3xl bg-white/60 backdrop-blur-md shadow-lg",
+                "sm:gap-1 sm:p-2 sm:border-2 sm:border-black sm:bg-white sm:backdrop-blur-sm sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:rounded-none"
+              )}
+            >
+              {/* App Icons */}
+              {dockItemsWithLaunchpad.map((item, index) => (
+                <div key={`${item.label}-${index}`}>
+                  <DockIconButton {...item} showLabel={showLabels} />
                 </div>
-                <div className="flex items-center gap-2 border-2 border-black px-2 py-1 bg-white">
-                  <Clock className="w-4 h-4 text-black" />
-                  <span className="text-xs font-medium text-black">{formatTime(currentTime)}</span>
+              ))}
+
+              {/* Separator */}
+              {currentTime && (
+                <div className="hidden sm:block w-px h-8 bg-black mx-2" />
+              )}
+
+              {/* Date & Time Display */}
+              {currentTime && (
+                <div className="hidden sm:flex items-center gap-2 px-3">
+                  <div className="flex items-center gap-2 border-2 border-black px-2 py-1 bg-white">
+                    <Calendar className="w-4 h-4 text-black" />
+                    <span className="text-xs font-medium text-black">{formatDate(currentTime)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 border-2 border-black px-2 py-1 bg-white">
+                    <Clock className="w-4 h-4 text-black" />
+                    <span className="text-xs font-medium text-black">{formatTime(currentTime)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {showLabels && (
+              <div className="hidden sm:flex items-center justify-center mt-2">
+                <div className="border-2 border-black bg-black text-white px-2 py-1 text-xs font-bold tracking-wider">
+                  SHINE DOCK
                 </div>
               </div>
             )}
           </div>
-          
-          {showLabels && (
-            <div className="flex items-center justify-center mt-2">
-              <div className="border-2 border-black bg-black text-white px-2 py-1 text-xs font-bold tracking-wider">
-                SHINE DOCK
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Apps Overlay */}
-        <AnimatePresence>
-          {showLaunchpad && (
-            <Apps 
-              items={items} 
-              onClose={closeLaunchpad}
-            />
-          )}
-        </AnimatePresence>
-      </>
-    )
+          {/* Apps Overlay */}
+          <AnimatePresence>
+            {showLaunchpad && (
+              <Apps items={items} onClose={closeLaunchpad} />
+            )}
+          </AnimatePresence>
+        </>
+      )
   }
 )
 Dock.displayName = "Dock"
