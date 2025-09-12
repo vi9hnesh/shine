@@ -22,16 +22,21 @@ jobs:
       MIRROR_REPO:  ${{ secrets.MIRROR_REPO }}
 
     steps:
-      - name: Checkout full history
+      - name: Checkout full history (no persisted creds)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false   # <— prevents GITHUB_TOKEN from being set in git config
 
       - name: Configure Git identity & safety
         run: |
           git config user.name  "mirror-bot"
           git config user.email "mirror-bot@users.noreply.github.com"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Remove any leftover GitHub auth headers (just in case)
+        run: |
+          git config --global --unset-all http.https://github.com/.extraheader || true
 
       - name: Validate required secrets
         run: |
@@ -43,13 +48,11 @@ jobs:
             fi
           done
 
-      - name: Build mirror URL (masked) & add/update remote
+      - name: Add/update mirror remote
         run: |
           set -euo pipefail
           MIRROR_URL="https://x-access-token:${MIRROR_PAT}@github.com/${MIRROR_OWNER}/${MIRROR_REPO}.git"
-          # Show target (without token) for debugging
           echo "Target: https://github.com/${MIRROR_OWNER}/${MIRROR_REPO}.git"
-
           if git remote get-url mirror >/dev/null 2>&1; then
             git remote set-url mirror "$MIRROR_URL"
           else
@@ -59,9 +62,8 @@ jobs:
       - name: Authentication probe (ls-remote)
         run: |
           set -euo pipefail
-          # This will 403 if the token can't access the mirror repo
           git ls-remote mirror >/dev/null
-          echo "Auth OK: can access mirror repo."
+          echo "Auth OK: can access mirror repo with PAT."
 
       # Uncomment if you use submodules and/or Git LFS
       # - name: Submodules & LFS (optional)
@@ -75,3 +77,9 @@ jobs:
           set -euo pipefail
           git push --prune mirror +refs/heads/*:refs/heads/*
           git push --prune mirror +refs/tags/*:refs/tags/* || true
+
+      # If you want a true 1:1 mirror (all refs, force), replace the push step with:
+      # - name: Push full mirror (force)
+      #   run: |
+      #     set -euo pipefail
+      #     git push --mirror mirror
