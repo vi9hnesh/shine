@@ -1,103 +1,307 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Keyboard, 
+  Timer, 
+  Wind, 
+  Heart, 
+  Music, 
+  FileText,
+  Newspaper,
+  Mountain,
+  Coffee,
+  Headphones,
+  PenTool,
+  Calendar,
+  Clock
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+const features = [
+  {
+    id: "typing",
+    title: "Flow",
+    description: "Focus-based and calming text drills to center your mind",
+    icon: Keyboard,
+    coming: false,
+    category: "Focus"
+  },
+  {
+    id: "reflect",
+    title: "Reflect",
+    description: "Lightweight reflection space with thoughtful prompts",
+    icon: PenTool,
+    coming: false,
+    category: "Reflection"
+  },
+  {
+    id: "pomodoro",
+    title: "Pomodoro",
+    description: "Focused timers with streak tracking and smart breaks",
+    icon: Timer,
+    coming: false,
+    category: "Productivity"
+  },
+  {
+    id: "reads",
+    title: "Reads",
+    description: "Warrn blog posts and industry insights for growth",
+    icon: FileText,
+    coming: false,
+    category: "Learning"
+  },
+  {
+    id: "breath",
+    title: "Breath Breaks",
+    description: "Guided breathing exercises and visual relaxation",
+    icon: Wind,
+    coming: true,
+    category: "Wellness"
+  },
+  {
+    id: "gallery",
+    title: "Visual Galleries",
+    description: "Open source collections of inspiring and calming scenes",
+    icon: Mountain,
+    coming: true,
+    category: "Inspiration"
+  },
+  {
+    id: "newsletter",
+    title: "Weekly Newsletter",
+    description: "Company culture and editorial content from your team",
+    icon: Newspaper,
+    coming: true,
+    category: "Culture"
+  },
+  {
+    id: "lounge",
+    title: "Silent Lounge",
+    description: "Ambient digital co-focus space for deep work",
+    icon: Coffee,
+    coming: true,
+    category: "Focus"
+  },
+  {
+    id: "appreciate",
+    title: "Appreciate",
+    description: "Anonymous weekly reflection board for team appreciation",
+    icon: Heart,
+    coming: true,
+    category: "Community"
+  },
+  {
+    id: "listen",
+    title: "Listen",
+    description: "Curated music for productivity and calm states of mind",
+    icon: Headphones,
+    coming: true,
+    category: "Audio"
+  }
+];
+
+// Enhanced animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { 
+    opacity: 0, 
+    y: 15,
+    scale: 0.98
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    scale: 1
+  }
+};
+
+const taskbarVariants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: { 
+    opacity: 1,
+    y: 0
+  }
+};
+
+export default function ShinePage() {
+  const [mounted, setMounted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleFeatureClick = (featureId: string) => {
+    const implementedFeatures = ['typing', 'reflect', 'reads', 'pomodoro'];
+    const routeMap: Record<string, string> = {
+      'typing': '/typing',
+      'reflect': '/journal',
+      'reads': '/reads',
+      'pomodoro': '/pomodoro'
+    };
+    
+    if (implementedFeatures.includes(featureId)) {
+      router.push(routeMap[featureId]);
+    }
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  if (!mounted) {
+    return (
+      <div className="h-screen bg-white font-syne overflow-hidden">
+        <div className="h-full flex items-center justify-center">
+          <div className="border-2 border-black px-3 py-1 bg-black text-white text-sm font-bold tracking-wider">
+            LOADING SHINE...
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen relative overflow-hidden bg-white font-syne">
+      {/* Taskbar with Hero Image */}
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={taskbarVariants}
+        className="relative z-10 border-b-2 border-black bg-white"
+      >
+        <div className="w-full overflow-hidden">
+          <img 
+            src="/images/mountain.png" 
+            alt="Shine" 
+            width={1200} 
+            height={400} 
+            className="w-full h-52 object-cover"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-4">
+            <div className="border-2 border-black px-4 py-2 bg-black text-white text-sm font-bold tracking-wider">
+              SHINE OS
+            </div>
+            <div className="text-xs text-gray-600 font-medium">
+              Est. 2025 • Productivity Operating System
+            </div>
+          </div>
+          
+          {/* Date & Time in Menu Bar */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 border-2 border-black px-3 py-1 bg-white">
+              <Calendar className="w-4 h-4" />
+              <span className="text-xs font-medium">{formatDate(currentTime)}</span>
+            </div>
+            <div className="flex items-center gap-2 border-2 border-black px-3 py-1 bg-white">
+              <Clock className="w-4 h-4" />
+              <span className="text-xs font-medium">{formatTime(currentTime)}</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Desktop Area */}
+      <div className="relative z-10 flex-1 overflow-y-auto">
+        <div className="p-8 h-full">
+          {/* Applications Grid */}
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 w-full"
+          >
+            <AnimatePresence>
+              {features.map((feature, index) => (
+                <motion.div 
+                  key={feature.id} 
+                  className="min-w-0"
+                  variants={cardVariants}
+                  layout
+                  whileHover={{ 
+                    y: -2
+                  }}
+                  whileTap={{ 
+                    scale: 0.98
+                  }}
+                >
+                  <Card 
+                    className="group cursor-pointer p-0 border-2 border-black bg-white hover:bg-gray-50 transition-colors duration-200 h-full overflow-hidden"
+                    onClick={() => handleFeatureClick(feature.id)}
+                    style={{
+                      borderRadius: '0px',
+                      boxShadow: '3px 3px 0px 0px rgba(0,0,0,1)',
+                    }}
+                  >
+                    <CardHeader className="pb-3 p-4">
+                      <div className="flex items-start justify-between min-w-0">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <div className="p-2 border border-black bg-white flex-shrink-0">
+                            <feature.icon className="w-5 h-5 text-black" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="text-base font-bold text-black mb-1 tracking-tight truncate">
+                              {feature.title}
+                            </CardTitle>
+                          </div>
+                        </div>
+                        {feature.coming && (
+                          <Badge 
+                            variant="secondary" 
+                            className="border border-black bg-yellow-200 text-black font-medium text-xs tracking-wide flex-shrink-0 ml-2"
+                          >
+                            SOON
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0 p-4">
+                      <div className="pt-3 border-t border-black">
+                        <CardDescription className="text-gray-700 leading-relaxed text-sm font-normal">
+                          {feature.description}
+                        </CardDescription>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
-}
+} 
