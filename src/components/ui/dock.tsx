@@ -145,11 +145,12 @@ const DockIconButton = React.memo(
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           className={cn(
-            "relative group p-2 rounded-xl bg-white/70 backdrop-blur-md shadow-md",
+            "relative group p-2 rounded-2xl bg-white/70 backdrop-blur-lg shadow-md",
             "sm:p-3 sm:rounded-none sm:border-2 sm:border-black sm:bg-white sm:shadow-none",
             "hover:bg-white/80 transition-colors duration-200",
             "focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2",
-            isActive && "bg-black text-white hover:bg-gray-800",
+            isActive &&
+              "bg-black text-white hover:bg-gray-800 sm:bg-black sm:text-white sm:hover:bg-gray-800",
             className
           )}
         >
@@ -189,9 +190,13 @@ const DockIconButton = React.memo(
             )}
           </AnimatePresence>
 
-          {/* Persistent label for mobile or when explicitly shown */}
-          {(showLabel || true) && (
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-black whitespace-nowrap sm:hidden">
+          {/* Persistent label for mobile */}
+          <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-black whitespace-nowrap sm:hidden">
+            {label}
+          </div>
+          {/* Optional label for larger screens */}
+          {showLabel && (
+            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-black whitespace-nowrap hidden sm:block">
               {label}
             </div>
           )}
@@ -252,7 +257,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
           >
             <div
               className={cn(
-                "flex items-center gap-6 px-4 py-3 rounded-3xl bg-white/60 backdrop-blur-md shadow-lg",
+                "flex items-center gap-4 px-5 py-3 rounded-[28px] bg-white/80 backdrop-blur-xl shadow-lg border border-white/20",
                 "sm:gap-1 sm:p-2 sm:border-2 sm:border-black sm:bg-white sm:backdrop-blur-sm sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:rounded-none"
               )}
             >
