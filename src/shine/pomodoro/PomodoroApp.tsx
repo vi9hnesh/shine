@@ -323,10 +323,10 @@ export default function PomodoroApp() {
         <div className="h-full overflow-y-auto">
           <div className="w-full p-4 sm:p-6">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-6 border-b-2 border-black pb-4">
-              <div className="flex items-center gap-2">              
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 border-b-2 border-black pb-4">
+              <div className="flex items-center gap-2">
                 {/* Tab Navigation */}
-                <div className="flex border-2 border-black" style={{ borderRadius: '0px' }}>
+                <div className="flex w-full sm:w-auto flex-wrap border-2 border-black" style={{ borderRadius: '0px' }}>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -376,7 +376,7 @@ export default function PomodoroApp() {
               </div>
 
               {/* Daily Progress */}
-              <div className="ml-auto flex items-center gap-2">
+              <div className="sm:ml-auto flex items-center gap-2 mt-4 sm:mt-0">
                 <span className="text-sm font-bold">
                   Today {completedPomodoros}/{completedPomodoros + Math.max(0, (activeTask?.estimatedPomodoros || 0) - (activeTask?.completedPomodoros || 0))}
                 </span>
@@ -385,7 +385,7 @@ export default function PomodoroApp() {
 
             {/* Timer Tab */}
             {activeTab === 'timer' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-180px)]">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[calc(100vh-180px)]">
                 {/* Main Timer */}
                 <div className="lg:col-span-2">
                   <Card 
@@ -412,7 +412,7 @@ export default function PomodoroApp() {
                       )}
 
                       {/* Timer Display */}
-                      <div className="text-8xl sm:text-9xl font-mono font-bold text-black mb-8 font-playfair leading-none">
+                      <div className="text-6xl sm:text-8xl lg:text-9xl font-mono font-bold text-black mb-8 font-playfair leading-none">
                         {formatTime(timeLeft)}
                       </div>
                       
@@ -514,7 +514,7 @@ export default function PomodoroApp() {
 
             {/* Tasks Tab */}
             {activeTab === 'tasks' && (
-              <div className="space-y-6 h-[calc(100vh-180px)]">
+              <div className="space-y-6 lg:h-[calc(100vh-180px)]">
                 {/* Add Task */}
                 <Card 
                   className="border-2 border-black bg-gray-50"
@@ -631,7 +631,7 @@ export default function PomodoroApp() {
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
-              <div className="space-y-6 h-[calc(100vh-180px)]">
+              <div className="space-y-6 lg:h-[calc(100vh-180px)]">
                 <Card 
                   className="border-2 border-black bg-white"
                   style={{ borderRadius: '0px', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' }}
@@ -772,7 +772,7 @@ export default function PomodoroApp() {
 
             {/* Stats Tab */}
             {activeTab === 'stats' && (
-              <div className="space-y-6 h-[calc(100vh-180px)]">
+              <div className="space-y-6 lg:h-[calc(100vh-180px)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card 
                     className="border-2 border-black bg-white text-center"

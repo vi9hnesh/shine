@@ -1,21 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { 
-  Keyboard, 
-  ArrowLeft, 
-  RotateCcw, 
-  Target, 
-  Timer,
-  TrendingUp,
-  CheckCircle,
-  AlertCircle,
-  Settings,
+import {
+  RotateCcw,
   ArrowRight,
   Pencil,
   Layout,
@@ -169,7 +160,10 @@ export default function TypingApp() {
         e.preventDefault();
       }
 
-      if (e.key === 'Backspace') {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        resetSession();
+      } else if (e.key === 'Backspace') {
         if (userInput.length > 0) {
           setUserInput(prev => prev.slice(0, -1));
         }
@@ -231,8 +225,8 @@ export default function TypingApp() {
   const completeSession = (finalInput: string) => {
     setIsActive(false);
     
-    const duration = elapsedTime;
-    const words = finalInput.split(' ').length;
+    const duration = Math.max(elapsedTime, 1);
+    const words = finalInput.trim().split(/\s+/).length;
     const wpm = Math.round((words / duration) * 60);
     
     // Calculate accuracy
@@ -361,8 +355,8 @@ export default function TypingApp() {
 
   const getCurrentWPM = () => {
     if (!isActive || elapsedTime === 0) return 0;
-    const words = userInput.split(' ').length;
-    return Math.round((words / elapsedTime) * 60);
+    const words = userInput.trim().split(/\s+/).length;
+    return Math.round((words / Math.max(elapsedTime, 1)) * 60);
   };
 
   const getCurrentAccuracy = () => {
@@ -491,7 +485,7 @@ export default function TypingApp() {
                    onClick={handleEditTarget}
                  >
                    <span className="text-sm font-bold">
-                     Today {dailyTarget?.completed || 0}/{dailyTarget?.target || 'n'}
+                     Today {dailyTarget?.completed ?? 0}/{dailyTarget?.target ?? 0}
                    </span>
                    <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                  </div>

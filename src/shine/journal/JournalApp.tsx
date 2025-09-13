@@ -276,10 +276,10 @@ export default function JournalApp() {
         <div className="h-full overflow-y-auto">
           <div className="w-full p-4 sm:p-6">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-6 border-b-2 border-black pb-4">
-              <div className="flex items-center gap-2">              
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 border-b-2 border-black pb-4">
+              <div className="flex items-center gap-2">
                 {/* Tab Navigation */}
-                <div className="flex border-2 border-black" style={{ borderRadius: '0px' }}>
+                <div className="flex w-full sm:w-auto flex-wrap border-2 border-black" style={{ borderRadius: '0px' }}>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -329,7 +329,7 @@ export default function JournalApp() {
               </div>
 
               {/* Daily Progress */}
-              <div className="ml-auto flex items-center gap-2">
+              <div className="sm:ml-auto flex items-center gap-2 mt-4 sm:mt-0">
                 <span className="text-sm font-bold">
                   {stats.currentStreak} day streak • {stats.totalEntries} entries
                 </span>
@@ -338,7 +338,7 @@ export default function JournalApp() {
 
             {/* Write Tab */}
             {activeTab === 'write' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-180px)]">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[calc(100vh-180px)]">
                 {/* Main Writing Area */}
                 <div className="lg:col-span-2">
                   <Card 
@@ -486,7 +486,7 @@ export default function JournalApp() {
 
             {/* Entries Tab */}
             {activeTab === 'entries' && (
-              <div className="space-y-6 h-[calc(100vh-180px)]">
+              <div className="space-y-6 lg:h-[calc(100vh-180px)]">
                 {/* Filters */}
                 <Card 
                   className="border-2 border-black bg-gray-50"
@@ -628,7 +628,7 @@ export default function JournalApp() {
 
             {/* Prompts Tab */}
             {activeTab === 'prompts' && (
-              <div className="space-y-6 h-[calc(100vh-180px)]">
+              <div className="space-y-6 lg:h-[calc(100vh-180px)]">
                 {['reflection', 'gratitude', 'growth', 'creativity', 'goals'].map((category) => (
                   <Card 
                     key={category}
@@ -674,7 +674,7 @@ export default function JournalApp() {
 
             {/* Stats Tab */}
             {activeTab === 'stats' && (
-              <div className="space-y-6 h-[calc(100vh-180px)]">
+              <div className="space-y-6 lg:h-[calc(100vh-180px)]">
                 {/* Key Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card 
