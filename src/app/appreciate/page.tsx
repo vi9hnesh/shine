@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import ShineLayout from "@/components/layout/shine-layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Heart, Home } from "lucide-react";
 
 interface Note {
   id: number;
@@ -17,6 +18,7 @@ interface Note {
 export default function AppreciatePage() {
   const [message, setMessage] = useState("");
   const [notes, setNotes] = useState<Note[]>([]);
+  const router = useRouter();
 
   const sortNotes = (notes: Note[]) =>
     [...notes].sort((a, b) => b.upvotes - a.upvotes);
@@ -67,41 +69,63 @@ export default function AppreciatePage() {
 
   return (
     <ShineLayout>
-      <header className="border-b-2 border-black p-4 bg-white">
-        <h1 className="text-xl font-bold">Appreciate</h1>
-      </header>
-      <div className="p-6 space-y-4">
-        <Card className="border-2 border-black">
-          <CardHeader>
-            <CardTitle>Share appreciation</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Write a thank-you note..."
-              className="border-2 border-black"
-            />
-            <Button onClick={addNote} className="border-2 border-black">
-              Post
-            </Button>
-          </CardContent>
-        </Card>
-
-        {notes.map((note) => (
-          <Card key={note.id} className="border-2 border-black">
-            <CardContent className="flex items-center justify-between">
-              <p className="text-sm text-gray-800">{note.message}</p>
+      <div className="h-full bg-white font-syne overflow-hidden">
+        <div className="h-full overflow-y-auto">
+          <div className="w-full p-4 sm:p-6">
+            <div className="flex items-center gap-4 mb-6 border-b-2 border-black pb-4">
               <Button
-                onClick={() => toggleUpvote(note.id)}
-                className={`border-2 border-black p-1 h-8 w-8 ${note.userUpvoted ? "bg-black text-white" : "bg-white"}`}
-                aria-label="Upvote"
+                variant="ghost"
+                onClick={() => router.back()}
+                className="border-2 border-black hover:bg-gray-100"
               >
-                <Heart className="w-4 h-4" />
+                <Home className="w-4 h-4 mr-1" />
+                Shine
               </Button>
-            </CardContent>
-          </Card>
-        ))}
+              <div className="border-2 border-black px-3 py-1 bg-black text-white text-sm font-bold tracking-wider">
+                APPRECIATE
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Card className="border-2 border-black">
+                <CardHeader>
+                  <CardTitle>Share appreciation</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Write a thank-you note..."
+                    className="border-2 border-black"
+                  />
+                  <Button onClick={addNote} className="border-2 border-black">
+                    Post
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {notes.map((note) => (
+                <Card key={note.id} className="border-2 border-black">
+                  <CardContent className="flex items-center justify-between">
+                    <p className="text-sm text-gray-800">{note.message}</p>
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleUpvote(note.id)}
+                      className={`border-2 border-black p-1 h-8 w-8 transition-colors ${
+                        note.userUpvoted
+                          ? "bg-black text-white"
+                          : "bg-white text-black hover:bg-black hover:text-white"
+                      }`}
+                      aria-label="Upvote"
+                    >
+                      <Heart className="w-4 h-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </ShineLayout>
   );
