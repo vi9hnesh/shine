@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -17,6 +18,9 @@ interface DockProps {
   showLabels?: boolean
   currentTime?: Date
   position?: DockPosition
+  onPositionChange?: (position: DockPosition) => void
+  isDraggable?: boolean // deprecated; no-op after removing DnD
+  showPositionSelector?: boolean
 }
 
 interface DockIconButtonProps {
@@ -27,6 +31,7 @@ interface DockIconButtonProps {
   isActive?: boolean
   showLabel?: boolean
   position?: DockPosition
+  index?: number
 }
 
 interface AppsProps {
@@ -63,6 +68,25 @@ const appsVariants = {
       duration: 0.2
     }
   }
+}
+
+// Position selector dropdown
+const PositionSelector: React.FC<{ value: DockPosition; onChange?: (p: DockPosition) => void }>
+  = ({ value, onChange }) => {
+  return (
+    <label className="hidden sm:flex items-center gap-2 border-2 border-black bg-white px-2 py-1 text-xs font-bold tracking-wider">
+      <span>DOCK</span>
+      <select
+        className="bg-transparent outline-none cursor-pointer"
+        value={value}
+        onChange={(e) => onChange?.(e.target.value as DockPosition)}
+      >
+        <option value="bottom">Bottom</option>
+        <option value="left">Left</option>
+        <option value="right">Right</option>
+      </select>
+    </label>
+  );
 }
 
 const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
@@ -125,7 +149,7 @@ const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
 const DockIconButton = React.memo(
   React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
     (
-      { icon: Icon, label, onClick, className, isActive = false, showLabel = false, position = 'bottom' },
+      { icon: Icon, label, onClick, className, isActive = false, showLabel = false, position = 'bottom', index = 0 },
       ref
     ) => {
       const [isHovered, setIsHovered] = React.useState(false)
@@ -133,9 +157,15 @@ const DockIconButton = React.memo(
       const getTooltipClasses = () => {
         switch (position) {
           case 'left':
-            return "hidden sm:block absolute -right-12 top-1/2 -translate-y-1/2"
+            // Alternate positioning both horizontally and vertically to prevent overlap
+            const leftHorizontal = index % 2 === 0 ? "-right-16" : "-right-20"
+            const leftVertical = index % 3 === 0 ? "top-1/2" : index % 3 === 1 ? "top-1/3" : "top-2/3"
+            return `hidden sm:block absolute ${leftHorizontal} ${leftVertical} -translate-y-1/2`
           case 'right':
-            return "hidden sm:block absolute -left-12 top-1/2 -translate-y-1/2"
+            // Alternate positioning both horizontally and vertically to prevent overlap
+            const rightHorizontal = index % 2 === 0 ? "-left-16" : "-left-20"
+            const rightVertical = index % 3 === 0 ? "top-1/2" : index % 3 === 1 ? "top-1/3" : "top-2/3"
+            return `hidden sm:block absolute ${rightHorizontal} ${rightVertical} -translate-y-1/2`
           default:
             return "hidden sm:block absolute -top-12 left-1/2 -translate-x-1/2"
         }
@@ -255,7 +285,7 @@ const DockIconButton = React.memo(
                 className={cn(
                   getTooltipClasses(),
                   "px-2 py-1 border-2 border-black bg-white text-black",
-                  "text-xs font-medium whitespace-nowrap pointer-events-none z-50"
+                  "text-xs font-medium whitespace-nowrap pointer-events-none z-[100]"
                 )}
                 style={{ boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)" }}
               >
@@ -284,7 +314,7 @@ DockIconButton.displayName = "DockIconButton"
 
 
 const Dock = React.forwardRef<HTMLDivElement, DockProps>(
-  ({ items, className, showLabels = false, currentTime, position = 'bottom' }, ref) => {
+  ({ items, className, showLabels = false, currentTime, position = 'bottom', onPositionChange, isDraggable = false, showPositionSelector = false }, ref) => {
     const [showLaunchpad, setShowLaunchpad] = React.useState(false);
 
     const handleLaunchpadClick = () => {
@@ -310,6 +340,8 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
         day: 'numeric'
       });
     };
+
+    // DnD removed. Double-click to cycle still available as a convenience when desired.
 
     const dockItemsWithLaunchpad = [
       ...items,
@@ -372,6 +404,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
       
       return "hidden sm:flex items-center justify-center mt-2"
     }
+    // no composed ref needed; parent can still pass ref directly
 
       return (
         <>
@@ -382,11 +415,27 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
               className
             )}
           >
-            <div className={getDockContainerClasses()}>
+            <div 
+              className={getDockContainerClasses()}
+              onDoubleClick={() => {
+                if (!isDraggable && onPositionChange) {
+                  // Cycle through positions on double-click when not draggable
+                  const positions: DockPosition[] = ["bottom", "left", "right"];
+                  const currentIndex = positions.indexOf(position);
+                  const nextIndex = (currentIndex + 1) % positions.length;
+                  onPositionChange(positions[nextIndex]);
+                }
+              }}
+            >
+              {/* Position selector */}
+              {showPositionSelector && (
+                <PositionSelector value={position} onChange={onPositionChange} />
+              )}
+
               {/* App Icons */}
               {dockItemsWithLaunchpad.map((item, index) => (
                 <div key={`${item.label}-${index}`}>
-                  <DockIconButton {...item} showLabel={showLabels} position={position} />
+                  <DockIconButton {...item} showLabel={showLabels} position={position} index={index} />
                 </div>
               ))}
 

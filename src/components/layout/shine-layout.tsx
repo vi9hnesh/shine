@@ -2,7 +2,8 @@
 
 import { ReactNode, useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Dock, DockPosition } from "@/components/ui/dock";
+import { Dock } from "@/components/ui/dock";
+import { useDockPosition } from "@/lib/use-dock-position";
 import {
   Keyboard,
   Timer,
@@ -15,7 +16,7 @@ import {
 
 interface ShineLayoutProps {
   children: ReactNode;
-  dockPosition?: DockPosition;
+  enableDockDragging?: boolean;
 }
 
 const dockItems = [
@@ -58,12 +59,13 @@ const dockItems = [
 
 export default function ShineLayout({ 
   children,
-  dockPosition = 'right'
+  enableDockDragging = true
 }: ShineLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-    const [mounted, setMounted] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
+  const { position: dockPosition, updatePosition, mounted: dockMounted } = useDockPosition();
+  const [mounted, setMounted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
       // Immediate mounting for faster navigation
@@ -89,7 +91,7 @@ export default function ShineLayout({
       [pathname, handleDockItemClick]
     );
 
-    if (!mounted) {
+    if (!mounted || !dockMounted) {
       return (
         <div className="h-full bg-white font-syne overflow-hidden">
           <div className="h-full flex items-center justify-center">
@@ -125,6 +127,8 @@ export default function ShineLayout({
         showLabels={false}
         currentTime={currentTime}
         position={dockPosition}
+        onPositionChange={updatePosition}
+        isDraggable={enableDockDragging}
       />
     </div>
   );
