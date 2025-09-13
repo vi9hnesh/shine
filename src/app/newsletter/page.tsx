@@ -19,6 +19,9 @@ const newsletters = [
 export default function NewsletterPage() {
   return (
     <ShineLayout>
+      <header className="border-b-2 border-black p-4 bg-white">
+        <h1 className="text-xl font-bold">Weekly Newsletter</h1>
+      </header>
       <div className="p-6 space-y-4">
         {newsletters.map((issue) => (
           <Card key={issue.id} className="border-2 border-black">
