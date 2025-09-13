@@ -3,6 +3,7 @@
 import { ReactNode, useState, useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Dock } from "@/components/ui/dock";
+import PomodoroOverlay from "@/shine/pomodoro/PomodoroOverlay";
 import { 
   Keyboard, 
   Timer, 
@@ -92,8 +93,10 @@ export default function ShineLayout({
         {children}
       </div>
 
+      <PomodoroOverlay />
+
       {/* Dock Navigation */}
-      <Dock 
+      <Dock
         items={dockItemsWithState}
         showLabels={false}
         currentTime={currentTime}

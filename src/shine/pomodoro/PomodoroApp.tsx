@@ -129,7 +129,32 @@ export default function PomodoroApp() {
       setTempSettings(loadedSettings);
       setTimeLeft(loadedSettings.workDuration * 60);
     }
+
+    // Load active timer
+    const savedTimer = localStorage.getItem('pomodoro-timer');
+    if (savedTimer) {
+      try {
+        const { timeLeft: savedTimeLeft, isActive: savedActive, isBreak: savedBreak, lastUpdated } = JSON.parse(savedTimer);
+        const elapsed = Math.floor((Date.now() - lastUpdated) / 1000);
+        const updatedTimeLeft = Math.max(0, savedTimeLeft - elapsed);
+        setTimeLeft(updatedTimeLeft);
+        setIsActive(savedActive && updatedTimeLeft > 0);
+        setIsBreak(savedBreak);
+      } catch {
+        // ignore malformed data
+      }
+    }
   }, []);
+
+  // Persist timer state
+  useEffect(() => {
+    localStorage.setItem('pomodoro-timer', JSON.stringify({
+      timeLeft,
+      isActive,
+      isBreak,
+      lastUpdated: Date.now(),
+    }));
+  }, [timeLeft, isActive, isBreak]);
 
   // Save session to localStorage
   const saveSession = (session: PomodoroSession) => {
