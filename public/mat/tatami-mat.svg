@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360">
+  <rect width="640" height="360" fill="#F5DEB3" />
+  <rect x="0" y="0" width="640" height="360" fill="none" stroke="#8B4513" stroke-width="10" />
+  <text x="50%" y="50%" font-size="48" text-anchor="middle" fill="#8B4513" dy=".3em">Tatami Mat</text>
+</svg>
