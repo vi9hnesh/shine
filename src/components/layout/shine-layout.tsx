@@ -105,7 +105,7 @@ export default function ShineLayout({
       </div>
 
       {/* Dock Navigation */}
-      <Dock 
+      <Dock
         items={dockItemsWithState}
         showLabels={false}
         currentTime={currentTime}

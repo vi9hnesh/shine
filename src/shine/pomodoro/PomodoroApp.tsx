@@ -76,6 +76,7 @@ export default function PomodoroApp() {
   const [showSettingsEdit, setShowSettingsEdit] = useState(false);
   const [tempSettings, setTempSettings] = useState<PomodoroSettings>(DEFAULT_SETTINGS);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Load data from localStorage
   useEffect(() => {
@@ -129,7 +130,34 @@ export default function PomodoroApp() {
       setTempSettings(loadedSettings);
       setTimeLeft(loadedSettings.workDuration * 60);
     }
+
+    // Load active timer
+    const savedTimer = localStorage.getItem('pomodoro-timer');
+    if (savedTimer) {
+      try {
+        const { timeLeft: savedTimeLeft, isActive: savedActive, isBreak: savedBreak, lastUpdated } = JSON.parse(savedTimer);
+        const elapsed = Math.floor((Date.now() - lastUpdated) / 1000);
+        const updatedTimeLeft = Math.max(0, savedTimeLeft - elapsed);
+        setTimeLeft(updatedTimeLeft);
+        setIsActive(savedActive && updatedTimeLeft > 0);
+        setIsBreak(savedBreak);
+      } catch {
+        // ignore malformed data
+      }
+    }
+    setHasInitialized(true);
   }, []);
+
+  // Persist timer state
+  useEffect(() => {
+    if (!hasInitialized) return;
+    localStorage.setItem('pomodoro-timer', JSON.stringify({
+      timeLeft,
+      isActive,
+      isBreak,
+      lastUpdated: Date.now(),
+    }));
+  }, [timeLeft, isActive, isBreak, hasInitialized]);
 
   // Save session to localStorage
   const saveSession = (session: PomodoroSession) => {
