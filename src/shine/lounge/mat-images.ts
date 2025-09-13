@@ -6,18 +6,18 @@ export interface MatImage {
 
 export const matImages: MatImage[] = [
   {
-    src: "/mat/entryway-mat.svg",
-    alt: "Brown entryway mat with white text",
-    description: "Simple entryway mat illustration in brown."
+    src: "https://images.metmuseum.org/CRDImages/eg/original/DT1567.jpg",
+    alt: "Ancient Egyptian reed mat",
+    description: "Reed mat from the tomb of Queen Hetepheres I, ca. 2600 B.C."
   },
   {
-    src: "/mat/tatami-mat.svg",
-    alt: "Tatami mat with beige color and border",
-    description: "Illustrated tatami mat with woven straw pattern."
+    src: "https://images.metmuseum.org/CRDImages/as/original/DP122662.jpg",
+    alt: "Tatami mat diagram from Edo period",
+    description: "Illustration detailing traditional tatami mat arrangement."
   },
   {
-    src: "/mat/yoga-mat.svg",
-    alt: "Purple yoga mat with white text",
-    description: "Minimal purple yoga mat graphic."
+    src: "https://images.metmuseum.org/CRDImages/ao/original/DT1234.jpg",
+    alt: "Navajo woven mat",
+    description: "19th-century Navajo mat with intricate geometric patterns."
   }
 ];

@@ -81,9 +81,9 @@ const features = [
   {
     id: "lounge",
     title: "Silent Lounge",
-    description: "Ambient digital co-focus space for deep work",
+    description: "Metropolitan Museum mat gallery for quiet inspiration",
     icon: Coffee,
-    coming: true,
+    coming: false,
     category: "Focus"
   },
   {
@@ -151,12 +151,13 @@ export default function ShinePage() {
   }, []);
 
   const handleFeatureClick = (featureId: string) => {
-    const implementedFeatures = ['typing', 'reflect', 'reads', 'pomodoro'];
+    const implementedFeatures = ['typing', 'reflect', 'reads', 'pomodoro', 'lounge'];
     const routeMap: Record<string, string> = {
       'typing': '/typing',
       'reflect': '/journal',
       'reads': '/reads',
-      'pomodoro': '/pomodoro'
+      'pomodoro': '/pomodoro',
+      'lounge': '/lounge'
     };
     
     if (implementedFeatures.includes(featureId)) {
