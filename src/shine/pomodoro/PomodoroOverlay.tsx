@@ -15,20 +15,40 @@ export default function PomodoroOverlay() {
       const saved = localStorage.getItem("pomodoro-timer");
       if (saved) {
         try {
-          const { timeLeft: savedTimeLeft, isActive: savedActive, isBreak: savedBreak, lastUpdated } = JSON.parse(saved);
+          const {
+            timeLeft: savedTimeLeft,
+            isActive: savedActive,
+            isBreak: savedBreak,
+            lastUpdated,
+          } = JSON.parse(saved);
           const elapsed = Math.floor((Date.now() - lastUpdated) / 1000);
           const newTimeLeft = Math.max(0, savedTimeLeft - elapsed);
 
-          if (savedActive && newTimeLeft <= 0) {
-            localStorage.setItem("pomodoro-timer", JSON.stringify({
-              timeLeft: 0,
-              isActive: false,
-              isBreak: savedBreak,
-              lastUpdated: Date.now(),
-            }));
-            setTimeLeft(0);
-            setIsActive(false);
-            return;
+          if (savedActive) {
+            if (newTimeLeft <= 0) {
+              localStorage.setItem(
+                "pomodoro-timer",
+                JSON.stringify({
+                  timeLeft: 0,
+                  isActive: false,
+                  isBreak: savedBreak,
+                  lastUpdated: Date.now(),
+                })
+              );
+              setTimeLeft(0);
+              setIsActive(false);
+              return;
+            }
+
+            localStorage.setItem(
+              "pomodoro-timer",
+              JSON.stringify({
+                timeLeft: newTimeLeft,
+                isActive: true,
+                isBreak: savedBreak,
+                lastUpdated: Date.now(),
+              })
+            );
           }
 
           setTimeLeft(newTimeLeft);

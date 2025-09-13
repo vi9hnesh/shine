@@ -3,7 +3,6 @@
 import { ReactNode, useState, useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Dock } from "@/components/ui/dock";
-import PomodoroOverlay from "@/shine/pomodoro/PomodoroOverlay";
 import { 
   Keyboard, 
   Timer, 
@@ -92,8 +91,6 @@ export default function ShineLayout({
       <div className="h-full overflow-hidden">
         {children}
       </div>
-
-      <PomodoroOverlay />
 
       {/* Dock Navigation */}
       <Dock
