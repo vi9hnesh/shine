@@ -157,7 +157,7 @@ export default function ShinePage() {
       'reflect': '/journal',
       'reads': '/reads',
       'pomodoro': '/pomodoro',
-      'lounge': '/lounge'
+      'lounge': '/lounge',
       'newsletter': '/newsletter',
       'appreciate': '/appreciate'
     };

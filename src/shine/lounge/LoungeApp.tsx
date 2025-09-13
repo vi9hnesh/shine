@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
@@ -8,6 +9,11 @@ import { matImages } from "./mat-images";
 
 export default function LoungeApp() {
   const router = useRouter();
+  const [images, setImages] = useState(matImages);
+
+  const shuffleImages = () => {
+    setImages((prev) => [...prev].sort(() => Math.random() - 0.5));
+  };
 
   return (
     <div className="h-full bg-white font-syne overflow-hidden">
@@ -26,11 +32,18 @@ export default function LoungeApp() {
             <div className="border-2 border-black px-3 py-1 bg-black text-white text-sm font-bold tracking-wider">
               SILENT LOUNGE
             </div>
+            <Button
+              variant="ghost"
+              onClick={shuffleImages}
+              className="border-2 border-black hover:bg-gray-100 ml-auto"
+            >
+              Shuffle
+            </Button>
           </div>
 
           {/* Gallery */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {matImages.map((img) => (
+            {images.map((img) => (
               <Card
                 key={img.src}
                 className="border-2 border-black bg-white"

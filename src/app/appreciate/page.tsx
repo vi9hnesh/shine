@@ -104,22 +104,29 @@ export default function AppreciatePage() {
                 </CardContent>
               </Card>
 
+              {notes.length === 0 && (
+                <p className="text-sm text-gray-500 text-center">No appreciation notes yet</p>
+              )}
+
               {notes.map((note) => (
                 <Card key={note.id} className="border-2 border-black">
                   <CardContent className="flex items-center justify-between">
                     <p className="text-sm text-gray-800">{note.message}</p>
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleUpvote(note.id)}
-                      className={`border-2 border-black p-1 h-8 w-8 transition-colors ${
-                        note.userUpvoted
-                          ? "bg-black text-white"
-                          : "bg-white text-black hover:bg-black hover:text-white"
-                      }`}
-                      aria-label="Upvote"
-                    >
-                      <Heart className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{note.upvotes}</span>
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleUpvote(note.id)}
+                        className={`border-2 border-black p-1 h-8 w-8 transition-colors ${
+                          note.userUpvoted
+                            ? "bg-black text-white"
+                            : "bg-white text-black hover:bg-black hover:text-white"
+                        }`}
+                        aria-label="Upvote"
+                      >
+                        <Heart className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

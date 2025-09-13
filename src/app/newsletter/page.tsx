@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import ShineLayout from "@/components/layout/shine-layout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -18,11 +20,27 @@ const newsletters = [
     title: "Weekly Update #2",
     date: "Jan 10, 2025",
     summary: "Team spotlights and upcoming company events."
-  }
+  },
 ];
 
 export default function NewsletterPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("newsletter-email");
+    if (stored) {
+      setEmail(stored);
+      setSubscribed(true);
+    }
+  }, []);
+
+  const handleSubscribe = () => {
+    if (email.trim().length === 0) return;
+    localStorage.setItem("newsletter-email", email.trim());
+    setSubscribed(true);
+  };
 
   return (
     <ShineLayout>
@@ -44,6 +62,31 @@ export default function NewsletterPage() {
             </div>
 
             <div className="space-y-4">
+              <Card className="border-2 border-black">
+                <CardHeader>
+                  <CardTitle>Subscribe</CardTitle>
+                  <CardDescription>Get the latest updates straight to your inbox.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {subscribed ? (
+                    <p className="text-sm text-gray-700">Subscribed as {email}</p>
+                  ) : (
+                    <>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="border-2 border-black"
+                      />
+                      <Button onClick={handleSubscribe} className="border-2 border-black">
+                        Subscribe
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
               {newsletters.map((issue) => (
                 <Card key={issue.id} className="border-2 border-black">
                   <CardHeader>
