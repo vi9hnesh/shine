@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components';
 import PomodoroOverlay from "@/shine/pomodoro/PomodoroOverlay";
 import "./globals.css";
 
@@ -53,8 +54,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
       >
-        {children}
-        <PomodoroOverlay />
+        <AuthKitProvider>
+          {children}
+          <PomodoroOverlay />
+        </AuthKitProvider>
       </body>
     </html>
   );

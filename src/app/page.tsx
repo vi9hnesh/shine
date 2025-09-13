@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Keyboard, 
   Timer, 
@@ -17,9 +18,13 @@ import {
   Headphones,
   PenTool,
   Calendar,
-  Clock
+  Clock,
+  User,
+  LogIn
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from '@workos-inc/authkit-nextjs/components';
+import UserBubble from '@/components/auth/user-bubble';
 
 const features = [
   {
@@ -140,6 +145,7 @@ const taskbarVariants = {
 export default function ShinePage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -240,6 +246,25 @@ export default function ShinePage() {
                   <Clock className="w-3 h-3" />
                   <span className="font-medium">{formatTime(currentTime)}</span>
                 </div>
+                
+                {/* Authentication UI */}
+                <div className="flex items-center gap-2 border-l border-gray-300 pl-4">
+                  {loading ? (
+                    <div className="text-xs text-gray-500">Loading...</div>
+                  ) : user ? (
+                    <UserBubble />
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push('/login')}
+                      className="border border-gray-300 hover:bg-gray-100 text-xs h-6 px-2"
+                    >
+                      <LogIn className="w-3 h-3 mr-1" />
+                      Sign In
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -329,7 +354,7 @@ export default function ShinePage() {
                       <div className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-2">
                         {feature.category}
                       </div>
-                      <CardDescription className="text-gray-700 leading-snug text-xs font-light">
+                      <CardDescription className="text-gray-700 leading-snug text-md font-light font-open">
                         {feature.description}
                       </CardDescription>
                     </CardContent>

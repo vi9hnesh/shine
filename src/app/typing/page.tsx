@@ -4,7 +4,8 @@ import PageTransition from "@/components/layout/page-transition";
 
 export default function TypingPage() {
   return (
-    <ShineLayout>
+    <ShineLayout
+    >
       <PageTransition>
         <TypingApp />
       </PageTransition>

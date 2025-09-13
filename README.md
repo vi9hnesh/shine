@@ -1,8 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shine OS
+
+A modern productivity and focus platform designed for teams. Shine provides a calm, beautiful workspace with tools for typing practice, journaling, pomodoro timers, reading, and team collaboration.
+
+## Features
+
+- **Flow**: Focus-based typing drills for mental centering
+- **Reflect**: Lightweight journaling with thoughtful prompts  
+- **Pomodoro**: Smart timers with streak tracking
+- **Reads**: Curated content and industry insights
+- **Newsletter**: Company culture and editorial content
+- **Appreciate**: Anonymous team appreciation board
+- **Silent Lounge**: Metropolitan Museum art gallery for inspiration
+
+## Authentication Setup
+
+This app uses WorkOS AuthKit for enterprise-grade authentication. **See [AUTH_SETUP.md](./AUTH_SETUP.md) for complete setup instructions.**
+
+Quick setup:
+1. Create `.env.local` with WorkOS credentials
+2. Configure redirect URIs in WorkOS Dashboard
+3. Run the development server
 
 ## Getting Started
 
-First, run the development server:
+First, complete the authentication setup (see AUTH_SETUP.md), then run the development server:
 
 ```bash
 npm run dev
