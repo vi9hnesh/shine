@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -12,9 +12,7 @@ import {
   Layout,
   Focus,
   BarChart3,
-  Home
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 interface TypingSession {
   id: string;
@@ -63,7 +61,6 @@ const WORD_COUNTS = {
 };
 
 export default function TypingApp() {
-  const router = useRouter();
   const [length, setLength] = useState<'short' | 'medium' | 'long'>('medium');
   const [currentText, setCurrentText] = useState('');
   const [userInput, setUserInput] = useState('');
@@ -118,6 +115,7 @@ export default function TypingApp() {
   }, []);
 
   // Generate new text when length changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     generateNewText();
   }, [length]);
@@ -142,6 +140,7 @@ export default function TypingApp() {
   }, [isActive, startTime]);
 
   // Handle keyboard input
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isFocused) return;
@@ -193,7 +192,7 @@ export default function TypingApp() {
     };
   }, [isFocused, userInput, isActive, currentText, currentSession]);
 
-  const generateNewText = () => {
+  const generateNewText = useCallback(() => {
     // Get a random text
     const randomText = TYPING_TEXTS[Math.floor(Math.random() * TYPING_TEXTS.length)];
     
@@ -220,9 +219,9 @@ export default function TypingApp() {
     setCurrentSession(null);
     setIsFocused(true);
     setTimeout(() => textContainerRef.current?.focus(), 100);
-  };
+  }, [length]);
 
-  const completeSession = (finalInput: string) => {
+  const completeSession = useCallback((finalInput: string) => {
     setIsActive(false);
     
     const duration = Math.max(elapsedTime, 1);
@@ -251,9 +250,9 @@ export default function TypingApp() {
     setCurrentSession(session);
     saveSession(session);
     updateDailyCounter();
-  };
+  }, [elapsedTime, currentText, length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const saveSession = (session: TypingSession) => {
+  const saveSession = useCallback((session: TypingSession) => {
     // Save session to history
     const savedSessions = localStorage.getItem('typing-sessions');
     let sessions: TypingSession[] = savedSessions ? JSON.parse(savedSessions) : [];
@@ -277,9 +276,9 @@ export default function TypingApp() {
       setStats(newStats);
       localStorage.setItem('typing-stats', JSON.stringify(newStats));
     }
-  };
+  }, [stats, currentText]);
 
-  const updateDailyCounter = () => {
+  const updateDailyCounter = useCallback(() => {
     if (dailyTarget) {
       const updatedTarget = {
         ...dailyTarget,
@@ -288,7 +287,7 @@ export default function TypingApp() {
       setDailyTarget(updatedTarget);
       localStorage.setItem('typing-daily-target', JSON.stringify(updatedTarget));
     }
-  };
+  }, [dailyTarget]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setDailyTargetValue = () => {
     const target = parseInt(targetInput);

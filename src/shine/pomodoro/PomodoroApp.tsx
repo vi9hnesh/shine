@@ -1,33 +1,24 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { 
   Timer, 
-  ArrowLeft, 
   Play, 
   Pause, 
   RotateCcw, 
-  Coffee, 
   Target, 
   CheckCircle,
-  TrendingUp,
   Plus,
   Trash2,
   Settings,
   BarChart3,
-  Layout,
-  Focus,
-  Clock,
-  Calendar,
   Pencil,
-  Home
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation"; // Unused import
 
 interface Task {
   id: string;
@@ -62,7 +53,6 @@ const DEFAULT_SETTINGS: PomodoroSettings = {
 };
 
 export default function PomodoroApp() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'timer' | 'tasks' | 'settings' | 'stats'>('timer');
   const [timeLeft, setTimeLeft] = useState(DEFAULT_SETTINGS.workDuration * 60);
   const [isActive, setIsActive] = useState(false);
@@ -183,6 +173,7 @@ export default function PomodoroApp() {
   };
 
   // Timer logic
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isActive && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
@@ -203,7 +194,7 @@ export default function PomodoroApp() {
     };
   }, [isActive, timeLeft]);
 
-  const handleSessionComplete = () => {
+  const handleSessionComplete = useCallback(() => {
     setIsActive(false);
     
     if (!isBreak) {
@@ -245,7 +236,7 @@ export default function PomodoroApp() {
       setIsBreak(false);
       setTimeLeft(settings.workDuration * 60);
     }
-  };
+  }, [isBreak, completedPomodoros, tasks, todaySession, settings]);
 
   const handleStart = () => {
     setIsActive(true);

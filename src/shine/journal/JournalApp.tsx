@@ -8,9 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   BookOpen, 
-  Home, 
   PenTool, 
-  History, 
   Lightbulb, 
   BarChart3,
   Plus,
@@ -18,15 +16,10 @@ import {
   Heart,
   Calendar,
   Search,
-  Filter,
   Quote,
-  Sparkles,
-  TrendingUp,
-  Clock,
   Star,
-  Archive
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation"; // Unused import
 
 interface JournalEntry {
   id: string;
@@ -100,7 +93,6 @@ const MOOD_LABELS = {
 };
 
 export default function JournalApp() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'write' | 'entries' | 'prompts' | 'stats'>('write');
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [prompts, setPrompts] = useState<JournalPrompt[]>(JOURNAL_PROMPTS);

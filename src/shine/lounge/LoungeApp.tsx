@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { matImages } from "./mat-images";
 
 export default function LoungeApp() {
@@ -59,7 +60,7 @@ export default function LoungeApp() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 border-t border-black">
-                  <img src={img.src} alt={img.alt} className="w-full h-48 object-cover mb-4" />
+                  <Image src={img.src} alt={img.alt} width={400} height={200} className="w-full h-48 object-cover mb-4" />
                   <p className="text-sm text-gray-700">{img.description}</p>
                 </CardContent>
               </Card>

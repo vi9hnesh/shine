@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, ArrowLeft, Home } from "lucide-react";
+import { FileText, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ReaderApp() {

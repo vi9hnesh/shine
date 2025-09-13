@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Home, LogOut } from "lucide-react";
+import { User, Home } from "lucide-react";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;

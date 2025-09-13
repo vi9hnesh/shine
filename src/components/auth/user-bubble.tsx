@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@workos-inc/authkit-nextjs/components';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { User, ChevronDown, Settings, LogOut, Home } from "lucide-react";
+import { ChevronDown, Settings, LogOut, Eye, EyeOff } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 interface UserBubbleProps {
@@ -14,7 +14,36 @@ interface UserBubbleProps {
 export default function UserBubble({ className = "" }: UserBubbleProps) {
   const { user, loading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [topBarHidden, setTopBarHidden] = useState(false);
   const router = useRouter();
+
+  // Top bar visibility state from localStorage
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('shine.topBarHidden');
+      setTopBarHidden(v === 'true');
+    } catch {}
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key || e.key === 'shine.topBarHidden') {
+        try {
+          const v = localStorage.getItem('shine.topBarHidden');
+          setTopBarHidden(v === 'true');
+        } catch {}
+      }
+    };
+    const onCustom = () => {
+      try {
+        const v = localStorage.getItem('shine.topBarHidden');
+        setTopBarHidden(v === 'true');
+      } catch {}
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('shine:topbar', onCustom as EventListener);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('shine:topbar', onCustom as EventListener);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -30,7 +59,7 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
   }
 
   // Get user initials
-  const getInitials = (user: any) => {
+  const getInitials = (user: { firstName?: string | null; lastName?: string | null; email: string }) => {
     if (user.firstName && user.lastName) {
       return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
     }
@@ -44,7 +73,7 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
   };
 
   // Get display name
-  const getDisplayName = (user: any) => {
+  const getDisplayName = (user: { firstName?: string | null; lastName?: string | null; email: string }) => {
     if (user.firstName && user.lastName) {
       return `${user.firstName} ${user.lastName}`;
     }
@@ -85,7 +114,7 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
           />
           
           {/* Menu */}
-          <Card className="absolute top-full right-0 mt-2 w-64 border-2 border-gray-900 shadow-lg z-20 bg-white">
+          <Card className="absolute top-full right-0 mt-2 w-64 border-2 border-gray-900 shadow-lg z-20 bg-white p-0">
             <div className="p-4">
               {/* User Info Header */}
               <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
@@ -103,19 +132,7 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
               </div>
 
               {/* Menu Items */}
-              <div className="py-2 space-y-1">
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    router.push('/');
-                    setIsOpen(false);
-                  }}
-                  className="w-full justify-start text-left h-8 px-2 hover:bg-gray-100"
-                >
-                  <Home className="w-4 h-4 mr-3" />
-                  Home
-                </Button>
-                
+              <div className="py-2 space-y-1">                
                 <Button
                   variant="ghost"
                   onClick={() => {
@@ -126,6 +143,28 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
                 >
                   <Settings className="w-4 h-4 mr-3" />
                   Profile & Settings
+                </Button>
+
+                {/* Toggle Top Bar Visibility */}
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    const next = !topBarHidden;
+                    try {
+                      localStorage.setItem('shine.topBarHidden', String(next));
+                    } catch {}
+                    setTopBarHidden(next);
+                    // Notify listeners (TopBar) in this tab
+                    window.dispatchEvent(new Event('shine:topbar'));
+                  }}
+                  className="w-full justify-start text-left h-8 px-2 hover:bg-gray-100"
+                >
+                  {topBarHidden ? (
+                    <Eye className="w-4 h-4 mr-3" />
+                  ) : (
+                    <EyeOff className="w-4 h-4 mr-3" />
+                  )}
+                  {topBarHidden ? 'Show Top Bar' : 'Hide Top Bar'}
                 </Button>
               </div>
 

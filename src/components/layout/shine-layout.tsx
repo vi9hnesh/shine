@@ -1,8 +1,8 @@
 "use client";
 
-import { ReactNode, useState, useEffect, useMemo } from "react";
+import { ReactNode, useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Dock } from "@/components/ui/dock";
+import { Dock, DockPosition } from "@/components/ui/dock";
 import {
   Keyboard,
   Timer,
@@ -15,6 +15,7 @@ import {
 
 interface ShineLayoutProps {
   children: ReactNode;
+  dockPosition?: DockPosition;
 }
 
 const dockItems = [
@@ -56,7 +57,8 @@ const dockItems = [
 ];
 
 export default function ShineLayout({ 
-  children
+  children,
+  dockPosition = 'right'
 }: ShineLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -72,10 +74,10 @@ export default function ShineLayout({
       return () => clearInterval(timer);
     }, []);
 
-    const handleDockItemClick = (path: string) => {
+    const handleDockItemClick = useCallback((path: string) => {
       // Optimistic navigation - start transition immediately
       router.push(path);
-    };
+    }, [router]);
 
     const dockItemsWithState = useMemo(
       () =>
@@ -84,7 +86,7 @@ export default function ShineLayout({
           isActive: pathname === item.path,
           onClick: () => handleDockItemClick(item.path),
         })),
-      [pathname]
+      [pathname, handleDockItemClick]
     );
 
     if (!mounted) {
@@ -99,10 +101,21 @@ export default function ShineLayout({
       );
     }
 
+  const getContentPadding = () => {
+    switch (dockPosition) {
+      case 'left':
+        return "pl-16 sm:pl-20" // Add left padding for left dock (64px mobile, 80px desktop)
+      case 'right':
+        return "pr-16 sm:pr-20" // Add right padding for right dock (64px mobile, 80px desktop)
+      default:
+        return "" // No additional padding for bottom dock
+    }
+  }
+
   return (
     <div className="h-full bg-white font-syne overflow-hidden relative">
       {/* Main Content */}
-      <div className="h-full overflow-hidden max-w-[90%] mx-auto">
+      <div className={`h-full overflow-hidden max-w-full sm:max-w-[98%] md:max-w-[96%] lg:max-w-[94%] xl:max-w-[94%] 4xl:max-w-[90%] mx-auto ${getContentPadding()}`}>
         {children}
       </div>
 
@@ -111,6 +124,7 @@ export default function ShineLayout({
         items={dockItemsWithState}
         showLabels={false}
         currentTime={currentTime}
+        position={dockPosition}
       />
     </div>
   );

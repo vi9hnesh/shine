@@ -1,0 +1,118 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, LogIn } from "lucide-react";
+import { useAuth } from "@workos-inc/authkit-nextjs/components";
+import UserBubble from "@/components/auth/user-bubble";
+
+/**
+ * Global top bar rendered on every page.
+ * Visibility is controlled by localStorage key `shine.topBarHidden`.
+ * The top bar is always shown on the homepage (`/`).
+ */
+export default function TopBar() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [hidden, setHidden] = useState(false);
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  // Clock
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Read visibility from localStorage and subscribe to changes
+  useEffect(() => {
+    const read = () => {
+      try {
+        const v = localStorage.getItem("shine.topBarHidden");
+        setHidden(v === "true");
+      } catch {
+        setHidden(false);
+      }
+    };
+    read();
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key || e.key === "shine.topBarHidden") read();
+    };
+    const onCustom = () => read();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("shine:topbar", onCustom as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("shine:topbar", onCustom as EventListener);
+    };
+  }, []);
+
+  const show = useMemo(() => (isHome ? true : !hidden), [isHome, hidden]);
+
+  if (!show) return null;
+
+  return (
+    <div className="sticky top-0 z-50 border-b-4 border-gray-900 bg-white shadow-lg">
+      <div className="w-full">
+        {/* Simple newspaper-style header without animations */}
+        <div className="bg-white/95 backdrop-blur-sm border-b border-gray-300">
+          <div className="flex items-center justify-between px-6 py-2">
+            <div className="text-xl font-bold tracking-wider text-gray-900 font-serif">
+              THE SHINE
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-xs text-gray-700">
+                <Calendar className="w-3 h-3" />
+                <span className="font-medium">{formatDate(currentTime)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-700">
+                <Clock className="w-3 h-3" />
+                <span className="font-medium">{formatTime(currentTime)}</span>
+              </div>
+
+              {/* Authentication UI */}
+              <div className="flex items-center gap-2 border-l border-gray-300 pl-4">
+                {loading ? (
+                  <div className="text-xs text-gray-500">Loading...</div>
+                ) : user ? (
+                  <UserBubble />
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push("/login")}
+                    className="border border-gray-300 hover:bg-gray-100 text-xs h-6 px-2"
+                  >
+                    <LogIn className="w-3 h-3 mr-1" />
+                    Sign In
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatTime(date: Date) {
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+function formatDate(date: Date) {
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+

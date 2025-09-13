@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils"
 import { LucideIcon } from "lucide-react"
 import { Grid3X3, Calendar, Clock } from "lucide-react"
 
+type DockPosition = 'bottom' | 'left' | 'right'
+
 interface DockProps {
   className?: string
   items: {
@@ -14,6 +16,7 @@ interface DockProps {
   }[]
   showLabels?: boolean
   currentTime?: Date
+  position?: DockPosition
 }
 
 interface DockIconButtonProps {
@@ -23,6 +26,7 @@ interface DockIconButtonProps {
   className?: string
   isActive?: boolean
   showLabel?: boolean
+  position?: DockPosition
 }
 
 interface AppsProps {
@@ -35,18 +39,19 @@ interface AppsProps {
   onClose: () => void
 }
 
-const itemVariants = {
-  hidden: { scale: 0, opacity: 0 },
-  visible: { 
-    scale: 1, 
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 500,
-      damping: 25
-    }
-  }
-}
+// Animation variants for dock items (kept for potential future use)
+// const itemVariants = {
+//   hidden: { scale: 0, opacity: 0 },
+//   visible: { 
+//     scale: 1, 
+//     opacity: 1,
+//     transition: {
+//       type: "spring",
+//       stiffness: 500,
+//       damping: 25
+//     }
+//   }
+// }
 
 const appsVariants = {
   hidden: { 
@@ -79,8 +84,8 @@ const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
             <motion.div
               key={item.label}
               whileHover={{ 
-                scale: 1.1,
-                y: -10,
+                scale: 1.05,
+                y: -4,
                 transition: { 
                   type: "spring", 
                   stiffness: 400, 
@@ -120,23 +125,101 @@ const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
 const DockIconButton = React.memo(
   React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
     (
-      { icon: Icon, label, onClick, className, isActive = false, showLabel = false },
+      { icon: Icon, label, onClick, className, isActive = false, showLabel = false, position = 'bottom' },
       ref
     ) => {
       const [isHovered, setIsHovered] = React.useState(false)
 
+      const getTooltipClasses = () => {
+        switch (position) {
+          case 'left':
+            return "hidden sm:block absolute -right-12 top-1/2 -translate-y-1/2"
+          case 'right':
+            return "hidden sm:block absolute -left-12 top-1/2 -translate-y-1/2"
+          default:
+            return "hidden sm:block absolute -top-12 left-1/2 -translate-x-1/2"
+        }
+      }
+
+      const getTooltipArrow = () => {
+        switch (position) {
+          case 'left':
+            return (
+              <div
+                className="absolute left-full top-1/2 -translate-y-1/2 w-0 h-0"
+                style={{
+                  borderTop: "4px solid transparent",
+                  borderBottom: "4px solid transparent",
+                  borderLeft: "4px solid black"
+                }}
+              />
+            )
+          case 'right':
+            return (
+              <div
+                className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0"
+                style={{
+                  borderTop: "4px solid transparent",
+                  borderBottom: "4px solid transparent",
+                  borderRight: "4px solid black"
+                }}
+              />
+            )
+          default:
+            return (
+              <div
+                className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
+                style={{
+                  borderLeft: "4px solid transparent",
+                  borderRight: "4px solid transparent",
+                  borderTop: "4px solid black"
+                }}
+              />
+            )
+        }
+      }
+
+      const getLabelClasses = () => {
+        switch (position) {
+          case 'left':
+            return "absolute -right-8 top-1/2 -translate-y-1/2 text-[10px] font-medium text-black whitespace-nowrap"
+          case 'right':
+            return "absolute -left-8 top-1/2 -translate-y-1/2 text-[10px] font-medium text-black whitespace-nowrap"
+          default:
+            return "absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-black whitespace-nowrap"
+        }
+      }
+
+      const getHoverAnimation = () => {
+        switch (position) {
+          case 'left':
+          case 'right':
+            return {
+              scale: 1.05,
+              x: position === 'left' ? -1 : 1,
+              transition: {
+                type: "spring" as const,
+                stiffness: 400,
+                damping: 25
+              }
+            }
+          default:
+            return {
+              scale: 1.05,
+              y: -1,
+              transition: {
+                type: "spring" as const,
+                stiffness: 400,
+                damping: 25
+              }
+            }
+        }
+      }
+
       return (
         <motion.button
           ref={ref}
-          whileHover={{
-            scale: 1.05,
-            y: -1,
-            transition: {
-              type: "spring",
-              stiffness: 400,
-              damping: 25
-            }
-          }}
+          whileHover={getHoverAnimation()}
           whileTap={{
             scale: 0.98,
             transition: { duration: 0.05 }
@@ -170,33 +253,25 @@ const DockIconButton = React.memo(
                 exit={{ opacity: 0, y: 5, scale: 0.9 }}
                 transition={{ duration: 0.15 }}
                 className={cn(
-                  "hidden sm:block absolute -top-12 left-1/2 -translate-x-1/2",
+                  getTooltipClasses(),
                   "px-2 py-1 border-2 border-black bg-white text-black",
                   "text-xs font-medium whitespace-nowrap pointer-events-none z-50"
                 )}
                 style={{ boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)" }}
               >
                 {label}
-                {/* Arrow */}
-                <div
-                  className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
-                  style={{
-                    borderLeft: "4px solid transparent",
-                    borderRight: "4px solid transparent",
-                    borderTop: "4px solid black"
-                  }}
-                />
+                {getTooltipArrow()}
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Persistent label for mobile */}
-          <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-black whitespace-nowrap sm:hidden">
+          <div className={cn(getLabelClasses(), "sm:hidden")}>
             {label}
           </div>
           {/* Optional label for larger screens */}
           {showLabel && (
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium text-black whitespace-nowrap hidden sm:block">
+            <div className={cn(getLabelClasses(), "hidden sm:block")}>
               {label}
             </div>
           )}
@@ -209,7 +284,7 @@ DockIconButton.displayName = "DockIconButton"
 
 
 const Dock = React.forwardRef<HTMLDivElement, DockProps>(
-  ({ items, className, showLabels = false, currentTime }, ref) => {
+  ({ items, className, showLabels = false, currentTime, position = 'bottom' }, ref) => {
     const [showLaunchpad, setShowLaunchpad] = React.useState(false);
 
     const handleLaunchpadClick = () => {
@@ -246,36 +321,83 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
       }
     ];
 
+    const getDockPositionClasses = () => {
+      switch (position) {
+        case 'left':
+          return "fixed left-4 top-1/2 -translate-y-1/2 z-50 sm:left-6"
+        case 'right':
+          return "fixed right-4 top-1/2 -translate-y-1/2 z-50 sm:right-6"
+        default:
+          return "fixed left-1/2 -translate-x-1/2 z-50 bottom-4 sm:bottom-6"
+      }
+    }
+
+    const getDockContainerClasses = () => {
+      const isVertical = position === 'left' || position === 'right'
+      
+      if (isVertical) {
+        return cn(
+          "flex flex-col items-center gap-4 px-3 py-5 rounded-[28px] bg-white/80 backdrop-blur-xl shadow-lg border border-white/20",
+          "sm:gap-1 sm:p-2 sm:border-2 sm:border-black sm:bg-white sm:backdrop-blur-sm sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:rounded-none"
+        )
+      }
+      
+      return cn(
+        "flex items-center gap-4 px-5 py-3 rounded-[28px] bg-white/80 backdrop-blur-xl shadow-lg border border-white/20",
+        "sm:gap-1 sm:p-2 sm:border-2 sm:border-black sm:bg-white sm:backdrop-blur-sm sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:rounded-none"
+      )
+    }
+
+    const getSeparatorClasses = () => {
+      const isVertical = position === 'left' || position === 'right'
+      return isVertical 
+        ? "hidden sm:block h-px w-8 bg-black my-2" 
+        : "hidden sm:block w-px h-8 bg-black mx-2"
+    }
+
+    const getTimeDisplayClasses = () => {
+      const isVertical = position === 'left' || position === 'right'
+      return isVertical 
+        ? "hidden sm:flex flex-col items-center gap-2 py-3"
+        : "hidden sm:flex items-center gap-2 px-3"
+    }
+
+    const getLabelContainerClasses = () => {
+      const isVertical = position === 'left' || position === 'right'
+      
+      if (isVertical) {
+        const sideClass = position === 'left' ? 'ml-2' : 'mr-2'
+        return `hidden sm:flex items-center justify-center ${sideClass}`
+      }
+      
+      return "hidden sm:flex items-center justify-center mt-2"
+    }
+
       return (
         <>
           <div
             ref={ref}
             className={cn(
-              "fixed left-1/2 -translate-x-1/2 z-50 bottom-4 sm:bottom-6",
+              getDockPositionClasses(),
               className
             )}
           >
-            <div
-              className={cn(
-                "flex items-center gap-4 px-5 py-3 rounded-[28px] bg-white/80 backdrop-blur-xl shadow-lg border border-white/20",
-                "sm:gap-1 sm:p-2 sm:border-2 sm:border-black sm:bg-white sm:backdrop-blur-sm sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:rounded-none"
-              )}
-            >
+            <div className={getDockContainerClasses()}>
               {/* App Icons */}
               {dockItemsWithLaunchpad.map((item, index) => (
                 <div key={`${item.label}-${index}`}>
-                  <DockIconButton {...item} showLabel={showLabels} />
+                  <DockIconButton {...item} showLabel={showLabels} position={position} />
                 </div>
               ))}
 
               {/* Separator */}
               {currentTime && (
-                <div className="hidden sm:block w-px h-8 bg-black mx-2" />
+                <div className={getSeparatorClasses()} />
               )}
 
-              {/* Date & Time Display */}
-              {currentTime && (
-                <div className="hidden sm:flex items-center gap-2 px-3">
+              {/* Date & Time Display  only on bottom */}
+              {currentTime && position === 'bottom' && (
+                <div className={getTimeDisplayClasses()}>
                   <div className="flex items-center gap-2 border-2 border-black px-2 py-1 bg-white">
                     <Calendar className="w-4 h-4 text-black" />
                     <span className="text-xs font-medium text-black">{formatDate(currentTime)}</span>
@@ -289,7 +411,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
             </div>
 
             {showLabels && (
-              <div className="hidden sm:flex items-center justify-center mt-2">
+              <div className={getLabelContainerClasses()}>
                 <div className="border-2 border-black bg-black text-white px-2 py-1 text-xs font-bold tracking-wider">
                   SHINE DOCK
                 </div>
@@ -310,3 +432,4 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
 Dock.displayName = "Dock"
 
 export { Dock, DockIconButton }
+export type { DockPosition }

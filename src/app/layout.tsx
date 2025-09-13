@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components';
 import PomodoroOverlay from "@/shine/pomodoro/PomodoroOverlay";
 import "./globals.css";
+import TopBar from "@/components/layout/top-bar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,10 +37,6 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" 
-          rel="stylesheet" 
-        />
         
         {/* Prefetch app routes for instant navigation */}
         <link rel="prefetch" href="/typing" />
@@ -55,6 +52,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
       >
         <AuthKitProvider>
+          <TopBar />
           {children}
           <PomodoroOverlay />
         </AuthKitProvider>
