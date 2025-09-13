@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
-import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components';
+import { ClerkProvider } from '@clerk/nextjs';
 import PomodoroOverlay from "@/shine/pomodoro/PomodoroOverlay";
 import "./globals.css";
 import TopBar from "@/components/layout/top-bar";
@@ -51,11 +51,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
       >
-        <AuthKitProvider>
+        <ClerkProvider>
           <TopBar />
           {children}
           <PomodoroOverlay />
-        </AuthKitProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

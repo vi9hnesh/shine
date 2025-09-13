@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@workos-inc/authkit-nextjs/components';
+import { useUser, useClerk } from '@clerk/nextjs';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronDown, Settings, LogOut, Eye, EyeOff, PanelBottom, PanelLeft, PanelRight } from "lucide-react";
@@ -13,7 +13,8 @@ interface UserBubbleProps {
 }
 
 export default function UserBubble({ className = "" }: UserBubbleProps) {
-  const { user, loading } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { signOut } = useClerk();
   const [isOpen, setIsOpen] = useState(false);
   const [topBarHidden, setTopBarHidden] = useState(false);
   const [dockPosition, setDockPosition] = useState<DockPosition>("bottom");
@@ -61,7 +62,7 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
     };
   }, []);
 
-  if (loading) {
+  if (!isLoaded) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <div className="w-6 h-6 border-2 border-gray-300 rounded-full animate-pulse"></div>
@@ -70,33 +71,33 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
     );
   }
 
-  if (!user) {
+  if (!isSignedIn || !user) {
     return null;
   }
 
   // Get user initials
-  const getInitials = (user: { firstName?: string | null; lastName?: string | null; email: string }) => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  const getInitials = (u: { firstName?: string | null; lastName?: string | null; email?: string | null }) => {
+    if (u.firstName && u.lastName) {
+      return `${u.firstName[0]}${u.lastName[0]}`.toUpperCase();
     }
-    if (user.firstName) {
-      return user.firstName[0].toUpperCase();
+    if (u.firstName) {
+      return u.firstName[0].toUpperCase();
     }
-    if (user.email) {
-      return user.email[0].toUpperCase();
+    if (u.email) {
+      return u.email[0].toUpperCase();
     }
     return 'U';
   };
 
   // Get display name
-  const getDisplayName = (user: { firstName?: string | null; lastName?: string | null; email: string }) => {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName} ${user.lastName}`;
+  const getDisplayName = (u: { firstName?: string | null; lastName?: string | null; email?: string | null }) => {
+    if (u.firstName && u.lastName) {
+      return `${u.firstName} ${u.lastName}`;
     }
-    if (user.firstName) {
-      return user.firstName;
+    if (u.firstName) {
+      return u.firstName;
     }
-    return user.email;
+    return u.email || 'User';
   };
 
   return (
@@ -108,12 +109,12 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
       >
         {/* User Avatar */}
         <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
-          {getInitials(user)}
+          {getInitials({ firstName: user.firstName, lastName: user.lastName, email: user.primaryEmailAddress?.emailAddress || null })}
         </div>
         
         {/* User Name */}
         <span className="text-sm font-medium text-gray-700 max-w-24 truncate">
-          {user.firstName || 'User'}
+          {user.firstName || user.primaryEmailAddress?.emailAddress || 'User'}
         </span>
         
         {/* Dropdown Arrow */}
@@ -135,14 +136,14 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
               {/* User Info Header */}
               <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {getInitials(user)}
+                  {getInitials({ firstName: user.firstName, lastName: user.lastName, email: user.primaryEmailAddress?.emailAddress || null })}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-900 truncate">
-                    {getDisplayName(user)}
+                    {getDisplayName({ firstName: user.firstName, lastName: user.lastName, email: user.primaryEmailAddress?.emailAddress || null })}
                   </div>
                   <div className="text-sm text-gray-500 truncate">
-                    {user.email}
+                    {user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress}
                   </div>
                 </div>
               </div>
@@ -231,9 +232,9 @@ export default function UserBubble({ className = "" }: UserBubbleProps) {
               <div className="pt-2 border-t border-gray-200">
                 <Button
                   variant="ghost"
-                  onClick={() => {
+                  onClick={async () => {
                     setIsOpen(false);
-                    window.location.href = '/logout';
+                    await signOut({ redirectUrl: '/' });
                   }}
                   className="w-full justify-start text-left h-8 px-2 hover:bg-red-50 text-red-600 hover:text-red-700"
                 >
