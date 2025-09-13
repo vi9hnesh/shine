@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, LogIn } from "lucide-react";
-import { useAuth } from "@workos-inc/authkit-nextjs/components";
+import { useUser } from "@clerk/nextjs";
 import UserBubble from "@/components/auth/user-bubble";
 
 /**
@@ -19,7 +19,7 @@ export default function TopBar() {
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [hidden, setHidden] = useState(false);
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
 
   // Clock
   useEffect(() => {
@@ -76,15 +76,15 @@ export default function TopBar() {
 
               {/* Authentication UI */}
               <div className="flex items-center gap-2 border-l border-gray-300 pl-4">
-                {loading ? (
+                {!isLoaded ? (
                   <div className="text-xs text-gray-500">Loading...</div>
-                ) : user ? (
+                ) : isSignedIn && user ? (
                   <UserBubble />
                 ) : (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => router.push("/login")}
+                    onClick={() => router.push("/sign-in")}
                     className="border border-gray-300 hover:bg-gray-100 text-xs h-6 px-2"
                   >
                     <LogIn className="w-3 h-3 mr-1" />
@@ -115,4 +115,3 @@ function formatDate(date: Date) {
     day: "numeric",
   });
 }
-

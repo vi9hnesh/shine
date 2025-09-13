@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from '@workos-inc/authkit-nextjs/components';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Card } from "@/components/ui/card";
@@ -18,18 +18,18 @@ export default function ProtectedLayout({
   title = "Shine App", 
   description = "Focus and productivity workspace" 
 }: ProtectedLayoutProps) {
-  const { user, loading } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    if (isLoaded && !isSignedIn) {
       router.push('/sign-in');
     }
-  }, [user, loading, router]);
+  }, [isLoaded, isSignedIn, router]);
 
   // Show loading state while checking authentication
-  if (loading) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="p-8 border-2 border-gray-900">
@@ -44,7 +44,7 @@ export default function ProtectedLayout({
 
   // If no user after loading, this shouldn't happen due to ensureSignedIn
   // but we handle it gracefully
-  if (!user) {
+  if (!isSignedIn || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="p-8 border-2 border-gray-900 text-center">
@@ -82,7 +82,7 @@ export default function ProtectedLayout({
             
             <div className="flex items-center gap-3">
               <div className="text-sm text-gray-700">
-                Welcome, {user.firstName || user.email}
+                Welcome, {user.firstName || user.primaryEmailAddress?.emailAddress}
               </div>
               <Button
                 variant="outline"

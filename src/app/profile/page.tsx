@@ -1,11 +1,23 @@
-import { withAuth } from '@workos-inc/authkit-nextjs';
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { User, Mail, Calendar, LogOut } from "lucide-react";
+import { User, Mail, Calendar } from "lucide-react";
+import SignOutCTA from "@/components/auth/sign-out-button";
 
 export default async function ProfilePage() {
-  // Ensure user is signed in, redirect to AuthKit if not
-  const { user } = await withAuth({ ensureSignedIn: true });
+  const { userId } = await auth();
+  if (!userId) {
+    redirect('/sign-in');
+  }
+  const user = await currentUser();
+  if (!user) {
+    redirect('/sign-in');
+  }
+
+  const firstName = user.firstName || null;
+  const lastName = user.lastName || null;
+  const email = user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress || 'Not provided';
+  const createdAt = user.createdAt ? new Date(user.createdAt) : new Date();
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -34,9 +46,7 @@ export default async function ProfilePage() {
                   <User className="w-4 h-4" />
                   First Name
                 </label>
-                <div className="p-3 border border-gray-300 rounded bg-gray-50">
-                  {user.firstName || 'Not provided'}
-                </div>
+                <div className="p-3 border border-gray-300 rounded bg-gray-50">{firstName || 'Not provided'}</div>
               </div>
               
               <div className="space-y-2">
@@ -44,9 +54,7 @@ export default async function ProfilePage() {
                   <User className="w-4 h-4" />
                   Last Name
                 </label>
-                <div className="p-3 border border-gray-300 rounded bg-gray-50">
-                  {user.lastName || 'Not provided'}
-                </div>
+                <div className="p-3 border border-gray-300 rounded bg-gray-50">{lastName || 'Not provided'}</div>
               </div>
             </div>
 
@@ -55,9 +63,7 @@ export default async function ProfilePage() {
                 <Mail className="w-4 h-4" />
                 Email Address
               </label>
-              <div className="p-3 border border-gray-300 rounded bg-gray-50">
-                {user.email}
-              </div>
+              <div className="p-3 border border-gray-300 rounded bg-gray-50">{email}</div>
             </div>
 
             <div className="space-y-2">
@@ -66,7 +72,7 @@ export default async function ProfilePage() {
                 Account Created
               </label>
               <div className="p-3 border border-gray-300 rounded bg-gray-50">
-                {new Date(user.createdAt).toLocaleDateString('en-US', {
+                {createdAt.toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
@@ -75,15 +81,7 @@ export default async function ProfilePage() {
             </div>
 
             <div className="pt-6 border-t border-gray-200">
-              <a href="/logout">
-                <Button 
-                  variant="outline"
-                  className="border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-              </a>
+              <SignOutCTA />
             </div>
           </CardContent>
         </Card>

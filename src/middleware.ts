@@ -1,11 +1,12 @@
-import { authkitMiddleware } from '@workos-inc/authkit-nextjs';
+import { clerkMiddleware } from '@clerk/nextjs/server';
 
-export default authkitMiddleware();
+// Attach Clerk auth state; protect routes in code where needed
+export default clerkMiddleware();
 
-// Match all routes except static assets and API routes
 export const config = {
   matcher: [
-    '/((?!api|_next|.*\\.).*)',
-    '/api/auth/:path*'
+    '/((?!.*\\..*|_next).*)',
+    '/',
+    '/(api|trpc)(.*)'
   ]
 };
