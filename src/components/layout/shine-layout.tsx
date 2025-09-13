@@ -3,12 +3,14 @@
 import { ReactNode, useState, useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Dock } from "@/components/ui/dock";
-import { 
-  Keyboard, 
-  Timer, 
-  PenTool, 
-  FileText, 
-  Home
+import {
+  Keyboard,
+  Timer,
+  PenTool,
+  FileText,
+  Home,
+  Newspaper,
+  Heart
 } from "lucide-react";
 
 interface ShineLayoutProps {
@@ -40,6 +42,16 @@ const dockItems = [
     icon: FileText,
     label: "Reads",
     path: "/reads"
+  },
+  {
+    icon: Newspaper,
+    label: "Newsletter",
+    path: "/newsletter"
+  },
+  {
+    icon: Heart,
+    label: "Appreciate",
+    path: "/appreciate"
   }
 ];
 
@@ -93,7 +105,7 @@ export default function ShineLayout({
       </div>
 
       {/* Dock Navigation */}
-      <Dock 
+      <Dock
         items={dockItemsWithState}
         showLabels={false}
         currentTime={currentTime}

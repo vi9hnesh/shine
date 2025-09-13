@@ -75,7 +75,7 @@ const features = [
     title: "Weekly Newsletter",
     description: "Company culture and editorial content from your team",
     icon: Newspaper,
-    coming: true,
+    coming: false,
     category: "Culture"
   },
   {
@@ -91,7 +91,7 @@ const features = [
     title: "Appreciate",
     description: "Anonymous weekly reflection board for team appreciation",
     icon: Heart,
-    coming: true,
+    coming: false,
     category: "Community"
   },
   {
@@ -151,13 +151,15 @@ export default function ShinePage() {
   }, []);
 
   const handleFeatureClick = (featureId: string) => {
-    const implementedFeatures = ['typing', 'reflect', 'reads', 'pomodoro', 'lounge'];
+    const implementedFeatures = ['typing', 'reflect', 'reads', 'pomodoro', 'newsletter', 'appreciate', 'lounge'];
     const routeMap: Record<string, string> = {
       'typing': '/typing',
       'reflect': '/journal',
       'reads': '/reads',
       'pomodoro': '/pomodoro',
       'lounge': '/lounge'
+      'newsletter': '/newsletter',
+      'appreciate': '/appreciate'
     };
     
     if (implementedFeatures.includes(featureId)) {
