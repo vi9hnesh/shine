@@ -20,22 +20,26 @@ export default function LoungeApp() {
       <div className="h-full overflow-y-auto">
         <div className="w-full p-4 sm:p-6">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8 border-b-2 border-black pb-4">
-            <Button
-              variant="ghost"
-              onClick={() => router.back()}
-              className="border-2 border-black hover:bg-gray-100"
-            >
-              <Home className="w-4 h-4 mr-1" />
-              Shine
-            </Button>
-            <div className="border-2 border-black px-3 py-1 bg-black text-white text-sm font-bold tracking-wider">
-              SILENT LOUNGE
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 border-b-2 border-black pb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex border-2 border-black" style={{ borderRadius: '0px' }}>
+                <Button
+                  variant="ghost"
+                  onClick={() => router.back()}
+                  className="border-r-2 border-black rounded-none px-3"
+                >
+                  <Home className="w-4 h-4 mr-1" />
+                  Shine
+                </Button>
+              </div>
+              <div className="border-2 border-black px-3 py-1 bg-black text-white text-sm font-bold tracking-wider">
+                SILENT LOUNGE
+              </div>
             </div>
             <Button
               variant="ghost"
               onClick={shuffleImages}
-              className="border-2 border-black hover:bg-gray-100 ml-auto"
+              className="border-2 border-black hover:bg-gray-100 sm:ml-auto"
             >
               Shuffle
             </Button>
