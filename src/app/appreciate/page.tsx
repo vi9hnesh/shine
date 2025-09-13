@@ -16,25 +16,27 @@ interface Note {
 }
 
 export default function AppreciatePage() {
-  const [message, setMessage] = useState("");
-  const [notes, setNotes] = useState<Note[]>([]);
   const router = useRouter();
 
   const sortNotes = (notes: Note[]) =>
     [...notes].sort((a, b) => b.upvotes - a.upvotes);
 
-  useEffect(() => {
-    const stored = localStorage.getItem("appreciate-notes");
-    if (stored) {
-      const parsed = (JSON.parse(stored) as Note[]).map((n) => ({
-        id: n.id,
-        message: n.message,
-        upvotes: n.upvotes ?? 0,
-        userUpvoted: n.userUpvoted ?? false,
-      }));
-      setNotes(sortNotes(parsed));
+  const [message, setMessage] = useState("");
+  const [notes, setNotes] = useState<Note[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("appreciate-notes");
+      if (stored) {
+        const parsed = (JSON.parse(stored) as Note[]).map((n) => ({
+          id: n.id,
+          message: n.message,
+          upvotes: n.upvotes ?? 0,
+          userUpvoted: n.userUpvoted ?? false,
+        }));
+        return sortNotes(parsed);
+      }
     }
-  }, []);
+    return [];
+  });
 
   useEffect(() => {
     localStorage.setItem("appreciate-notes", JSON.stringify(notes));
@@ -116,8 +118,7 @@ export default function AppreciatePage() {
                 <Card key={note.id} className="border-2 border-black">
                   <CardContent className="flex items-center justify-between">
                     <p className="text-sm text-gray-800">{note.message}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{note.upvotes}</span>
+                    <div className="flex items-center">
                       <Button
                         variant="ghost"
                         onClick={() => toggleUpvote(note.id)}

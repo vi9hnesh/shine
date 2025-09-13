@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ShineLayout from "@/components/layout/shine-layout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,16 +25,18 @@ const newsletters = [
 
 export default function NewsletterPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("newsletter-email");
-    if (stored) {
-      setEmail(stored);
-      setSubscribed(true);
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("newsletter-email") || "";
     }
-  }, []);
+    return "";
+  });
+  const [subscribed, setSubscribed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!localStorage.getItem("newsletter-email");
+    }
+    return false;
+  });
 
   const handleSubscribe = () => {
     if (email.trim().length === 0) return;

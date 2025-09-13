@@ -138,12 +138,10 @@ const taskbarVariants = {
 };
 
 export default function ShinePage() {
-  const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const router = useRouter();
 
   useEffect(() => {
-    setMounted(true);
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -182,18 +180,6 @@ export default function ShinePage() {
       day: 'numeric'
     });
   };
-
-  if (!mounted) {
-    return (
-      <div className="h-screen bg-white font-syne overflow-hidden">
-        <div className="h-full flex items-center justify-center">
-          <div className="border-2 border-black px-3 py-1 bg-black text-white text-sm font-bold tracking-wider">
-            LOADING SHINE...
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen relative overflow-hidden bg-white font-syne">
