@@ -56,7 +56,7 @@ const features = [
   },
   {
     id: "breath",
-    title: "Breath Breaks",
+    title: "Breaks",
     description: "Guided breathing exercises and visual relaxation",
     icon: Wind,
     coming: true,
@@ -64,7 +64,7 @@ const features = [
   },
   {
     id: "gallery",
-    title: "Visual Galleries",
+    title: "Galleries",
     description: "Open source collections of inspiring and calming scenes",
     icon: Mountain,
     coming: true,
@@ -72,7 +72,7 @@ const features = [
   },
   {
     id: "newsletter",
-    title: "Weekly Newsletter",
+    title: "Newsletter",
     description: "Company culture and editorial content from your team",
     icon: Newspaper,
     coming: false,
@@ -104,14 +104,14 @@ const features = [
   }
 ];
 
-// Enhanced animation variants
+// Professional animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.1
+      staggerChildren: 0.06,
+      delayChildren: 0.2
     }
   }
 };
@@ -119,8 +119,8 @@ const containerVariants = {
 const cardVariants = {
   hidden: { 
     opacity: 0, 
-    y: 15,
-    scale: 0.98
+    y: 20,
+    scale: 0.96
   },
   visible: { 
     opacity: 1, 
@@ -130,7 +130,7 @@ const cardVariants = {
 };
 
 const taskbarVariants = {
-  hidden: { opacity: 0, y: -10 },
+  hidden: { opacity: 0, y: -20 },
   visible: { 
     opacity: 1,
     y: 0
@@ -145,8 +145,23 @@ export default function ShinePage() {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
+
+  // Separate effect for preloading to run only once
+  useEffect(() => {
+    // Preload app routes when homepage loads
+    const preloadRoutes = () => {
+      const routes = ['/typing', '/journal', '/pomodoro', '/reads', '/newsletter', '/appreciate', '/lounge'];
+      routes.forEach(route => router.prefetch(route));
+    };
+
+    // Start preloading after initial render
+    const timeoutId = setTimeout(preloadRoutes, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, []); // Empty dependency array - run only once
 
   const handleFeatureClick = (featureId: string) => {
     const implementedFeatures = ['typing', 'reflect', 'reads', 'pomodoro', 'newsletter', 'appreciate', 'lounge'];
@@ -182,56 +197,86 @@ export default function ShinePage() {
   };
 
   return (
-    <div className="h-screen relative overflow-hidden bg-white font-syne">
-      {/* Taskbar with Hero Image */}
+    <div className="h-screen relative overflow-hidden bg-gray-50 font-sans" style={{
+      backgroundImage: `
+        linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px),
+        linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px)
+      `,
+      backgroundSize: '20px 20px'
+    }}>
+      {/* Enhanced Masthead */}
       <motion.div 
         initial="hidden"
         animate="visible"
         variants={taskbarVariants}
-        className="relative z-10 border-b-2 border-black bg-white"
+        className="relative z-10 border-b-4 border-gray-900 bg-white shadow-lg"
       >
-        <div className="w-full overflow-hidden">
+        <div className="relative w-full overflow-hidden">
           <img 
             src="/mountain.png" 
             alt="Shine" 
             width={1200} 
             height={400} 
-            className="w-full h-52 object-cover"
+            className="w-full h-48 object-cover opacity-90 filter brightness-110 contrast-105"
           />
-        </div>
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
-            <div className="border-2 border-black px-4 py-2 bg-black text-white text-sm font-bold tracking-wider">
-              SHINE OS
-            </div>
-            <div className="text-xs text-gray-600 font-medium">
-              Est. 2025 • Productivity Operating System
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          
+          {/* Newspaper-style Header */}
+          <div className="absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-300">
+            <div className="flex items-center justify-between px-6 py-2">
+              <div className="flex items-center gap-6">
+                <div className="text-xl font-bold tracking-wider text-gray-900 font-serif">
+                  THE SHINE
+                </div>
+
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-xs text-gray-700">
+                  <Calendar className="w-3 h-3" />
+                  <span className="font-medium">{formatDate(currentTime)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-700">
+                  <Clock className="w-3 h-3" />
+                  <span className="font-medium">{formatTime(currentTime)}</span>
+                </div>
+              </div>
             </div>
           </div>
           
-          {/* Date & Time in Menu Bar */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 border-2 border-black px-3 py-1 bg-white">
-              <Calendar className="w-4 h-4" />
-              <span className="text-xs font-medium">{formatDate(currentTime)}</span>
-            </div>
-            <div className="flex items-center gap-2 border-2 border-black px-3 py-1 bg-white">
-              <Clock className="w-4 h-4" />
-              <span className="text-xs font-medium">{formatTime(currentTime)}</span>
+          {/* Main Masthead */}
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <div className="flex justify-end w-full">
+              <div className="flex items-center justify-end gap-6">
+                <div className="text-white font-light ">
+                  <div className="text-xs opacity-75 tracking-wide font-shine">Designed for Modern Teams</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </motion.div>
 
       {/* Desktop Area */}
-      <div className="relative z-10 flex-1 overflow-y-auto">
-        <div className="p-8 h-full">
+      <div className="relative z-10 flex-1 overflow-y-auto bg-gray-50" style={{
+        backgroundImage: `
+          linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px),
+          linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px)
+        `,
+        backgroundSize: '20px 20px'
+      }}>
+        <div className="max-w-7xl mx-auto p-8 h-full">
+          {/* Section Header */}
+          <div className="mb-8 border-b-2 border-gray-900 pb-4">
+            
+          </div>
+          
           {/* Applications Grid */}
           <motion.div 
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 w-full"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full"
           >
             <AnimatePresence>
               {features.map((feature, index) => (
@@ -241,28 +286,31 @@ export default function ShinePage() {
                   variants={cardVariants}
                   layout
                   whileHover={{ 
-                    y: -2
+                    y: -1,
+                    scale: 1.01,
+                    transition: { duration: 0.2 }
                   }}
                   whileTap={{ 
-                    scale: 0.98
+                    scale: 0.98,
+                    transition: { duration: 0.1 }
                   }}
                 >
                   <Card 
-                    className="group cursor-pointer p-0 border-2 border-black bg-white hover:bg-gray-50 transition-colors duration-200 h-full overflow-hidden"
+                    className="group cursor-pointer p-0 border-2 border-gray-900 bg-white hover:bg-gray-50 transition-all duration-300 h-full overflow-hidden hover:shadow-lg hover:border-gray-700"
                     onClick={() => handleFeatureClick(feature.id)}
                     style={{
                       borderRadius: '0px',
-                      boxShadow: '3px 3px 0px 0px rgba(0,0,0,1)',
+                      boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.1)',
                     }}
                   >
-                    <CardHeader className="pb-3 p-4">
-                      <div className="flex items-start justify-between min-w-0">
+                    <CardHeader className="pb-2 p-4">
+                      <div className="flex items-center justify-between min-w-0">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <div className="p-2 border border-black bg-white flex-shrink-0">
-                            <feature.icon className="w-5 h-5 text-black" />
+                          <div className="p-2 border-2 border-gray-900 bg-gray-900 flex-shrink-0">
+                            <feature.icon className="w-4 h-4 text-white" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <CardTitle className="text-base font-bold text-black mb-1 tracking-tight truncate">
+                            <CardTitle className="text-lg text-gray-900 mb-1 truncate font-serif">
                               {feature.title}
                             </CardTitle>
                           </div>
@@ -270,7 +318,7 @@ export default function ShinePage() {
                         {feature.coming && (
                           <Badge 
                             variant="secondary" 
-                            className="border border-black bg-yellow-200 text-black font-medium text-xs tracking-wide flex-shrink-0 ml-2"
+                            className="border border-amber-600 bg-amber-100 text-amber-800 font-bold text-xs tracking-wide flex-shrink-0 ml-2 shadow-sm"
                           >
                             SOON
                           </Badge>
@@ -278,11 +326,12 @@ export default function ShinePage() {
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0 p-4">
-                      <div className="pt-3 border-t border-black">
-                        <CardDescription className="text-gray-700 leading-relaxed text-sm font-normal">
-                          {feature.description}
-                        </CardDescription>
+                      <div className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-2">
+                        {feature.category}
                       </div>
+                      <CardDescription className="text-gray-700 leading-snug text-xs font-light">
+                        {feature.description}
+                      </CardDescription>
                     </CardContent>
                   </Card>
                 </motion.div>

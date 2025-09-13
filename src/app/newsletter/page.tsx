@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ShineLayout from "@/components/layout/shine-layout";
+import PageTransition from "@/components/layout/page-transition";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +47,8 @@ export default function NewsletterPage() {
 
   return (
     <ShineLayout>
-      <div className="h-full bg-white font-syne overflow-hidden">
+      <PageTransition>
+        <div className="h-full bg-white font-syne overflow-hidden">
         <div className="h-full overflow-y-auto">
           <div className="w-full p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 border-b-2 border-black pb-4">
@@ -107,7 +109,8 @@ export default function NewsletterPage() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </PageTransition>
     </ShineLayout>
   );
 }

@@ -356,15 +356,6 @@ export default function PomodoroApp() {
                 {/* Tab Navigation */}
                 <div className="flex w-full sm:w-auto flex-wrap border-2 border-black" style={{ borderRadius: '0px' }}>
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.back()}
-                    className="border-r-2 border-black rounded-none px-3"
-                  >
-                    <Home className="w-4 h-4 mr-1" />
-                    Shine
-                  </Button>
-                  <Button
                     variant={activeTab === 'timer' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setActiveTab('timer')}

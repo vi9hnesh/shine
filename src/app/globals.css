@@ -119,4 +119,18 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  .font-serif {
+    font-family: var(--font-playfair), serif;
+  }
+  
+  .font-sans {
+    font-family: 'Inter', sans-serif;
+  }
+  .font-shine {
+    font-family: 'Libre Baskerville', serif;
+  }
+  .font-open {
+    font-family: 'Open Sans', sans-serif;
+  }
 }

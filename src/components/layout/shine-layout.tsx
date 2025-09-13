@@ -64,6 +64,7 @@ export default function ShineLayout({
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
+      // Immediate mounting for faster navigation
       setMounted(true);
       const timer = setInterval(() => {
         setCurrentTime(new Date());
@@ -72,6 +73,7 @@ export default function ShineLayout({
     }, []);
 
     const handleDockItemClick = (path: string) => {
+      // Optimistic navigation - start transition immediately
       router.push(path);
     };
 
@@ -100,7 +102,7 @@ export default function ShineLayout({
   return (
     <div className="h-full bg-white font-syne overflow-hidden relative">
       {/* Main Content */}
-      <div className="h-full overflow-hidden">
+      <div className="h-full overflow-hidden max-w-[90%] mx-auto">
         {children}
       </div>
 

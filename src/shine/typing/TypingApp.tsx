@@ -401,16 +401,7 @@ export default function TypingApp() {
               {/* Tab Navigation */}
               <div className="flex border-2 border-black" style={{ borderRadius: '0px' }}>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => router.back()}
-                  className="border-r-2 border-black rounded-none px-3"
-                >
-                  <Home className="w-4 h-4 mr-1" />
-                  Shine
-                </Button>
-                <Button
-                  variant="ghost"
+                  variant={activeTab === 'basic' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setActiveTab('basic')}
                   className="border-r-2 border-black rounded-none px-3"

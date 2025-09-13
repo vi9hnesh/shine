@@ -129,17 +129,17 @@ const DockIconButton = React.memo(
         <motion.button
           ref={ref}
           whileHover={{
-            scale: 1.08,
-            y: -2,
+            scale: 1.05,
+            y: -1,
             transition: {
               type: "spring",
-              stiffness: 200,
-              damping: 15
+              stiffness: 400,
+              damping: 25
             }
           }}
           whileTap={{
-            scale: 0.95,
-            transition: { duration: 0.1 }
+            scale: 0.98,
+            transition: { duration: 0.05 }
           }}
           onClick={onClick}
           onMouseEnter={() => setIsHovered(true)}
