@@ -76,6 +76,9 @@ export default function TypingApp() {
   const [activeTab, setActiveTab] = useState<'basic' | 'focus' | 'stats'>('basic');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const prevPosRef = useRef<{ left: number; top: number } | null>(null);
+  const cursorAnimRef = useRef<Animation | null>(null);
 
   // Load stats and daily target from localStorage
   useEffect(() => {
@@ -191,6 +194,93 @@ export default function TypingApp() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isFocused, userInput, isActive, currentText, currentSession]);
+
+  // Smooth caret movement using transform-based animation
+  useEffect(() => {
+    const container = textContainerRef.current;
+    const cursor = cursorRef.current;
+    if (!container || !cursor) return;
+
+    // Show cursor only when focused and no completed session
+    const shouldShow = isFocused && !currentSession;
+    cursor.style.display = shouldShow ? "block" : "none";
+    if (!shouldShow) {
+      if (cursorAnimRef.current) {
+        cursorAnimRef.current.cancel();
+        cursorAnimRef.current = null;
+      }
+      prevPosRef.current = null;
+      return;
+    }
+
+    // Find target element by data index
+    const idx = userInput.length;
+    const target = container.querySelector<HTMLElement>(`[data-idx="${idx}"]`);
+    if (!target) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const left = targetRect.left - containerRect.left;
+    const top = targetRect.top - containerRect.top;
+
+    // Adjust caret height to target line height
+    cursor.style.height = `${targetRect.height}px`;
+
+    // Animate via transform for smoothness
+    cursor.style.left = "0px";
+    cursor.style.top = "0px";
+
+    const toTransform = `translate(${left}px, ${top}px)`;
+
+    // If first paint, jump without animation
+    if (!prevPosRef.current) {
+      if (cursorAnimRef.current) {
+        cursorAnimRef.current.cancel();
+        cursorAnimRef.current = null;
+      }
+      cursor.style.transform = toTransform;
+      prevPosRef.current = { left, top };
+      return;
+    }
+
+    const from = prevPosRef.current;
+    const fromTransform = `translate(${from.left}px, ${from.top}px)`;
+
+    // Compute distance-based duration for constant speed
+    const dx = left - from.left;
+    const dy = top - from.top;
+    const distance = Math.hypot(dx, dy);
+    const SPEED_PX_PER_MS = 2.0; // ~2000 px/s
+    const MIN_DUR = 60;
+    const MAX_DUR = 220;
+    const duration = Math.max(MIN_DUR, Math.min(MAX_DUR, Math.round(distance / SPEED_PX_PER_MS)));
+
+    if (cursorAnimRef.current) {
+      cursorAnimRef.current.cancel();
+      cursorAnimRef.current = null;
+    }
+
+    // Set final transform so end state persists
+    cursor.style.transform = toTransform;
+
+    cursorAnimRef.current = cursor.animate(
+      [{ transform: fromTransform }, { transform: toTransform }],
+      {
+        duration,
+        iterations: 1,
+        easing: "cubic-bezier(.2,.8,.2,1)",
+        fill: "both",
+      }
+    );
+
+    const clear = () => {
+      cursorAnimRef.current = null;
+    };
+    cursorAnimRef.current.onfinish = clear;
+    cursorAnimRef.current.oncancel = clear;
+
+    prevPosRef.current = { left, top };
+  }, [userInput, isFocused, currentSession, currentText]);
 
   const generateNewText = useCallback(() => {
     // Get a random text
@@ -381,15 +471,6 @@ export default function TypingApp() {
 
   return (
     <>
-      <style jsx>{`
-        @keyframes cursor-blink {
-          0%, 50% { opacity: 1; }
-          51%, 100% { opacity: 0; }
-        }
-        .cursor-line {
-          animation: cursor-blink 1s infinite;
-        }
-      `}</style>
       <div className="h-full bg-white font-syne overflow-hidden">
         <div className="h-full overflow-y-auto">
         <div className="w-full p-4 sm:p-6">
@@ -528,35 +609,37 @@ export default function TypingApp() {
                     tabIndex={0}
                     style={{ 
                       outline: 'none',
-                      lineHeight: '1.8'
+                      lineHeight: '1.8',
+                      position: 'relative'
                     }}
                   >
+                    {/* Smooth animated caret overlay */}
+                    <div
+                      ref={cursorRef}
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        width: '2px',
+                        height: '1em',
+                        backgroundColor: '#3b82f6',
+                        transform: 'translate(0px, 0px)',
+                        willChange: 'transform',
+                        zIndex: 10,
+                        pointerEvents: 'none',
+                      }}
+                    />
                     {currentText.split(' ').map((word, wordIndex) => (
                       <span key={wordIndex} style={{ whiteSpace: 'nowrap', display: 'inline-block', marginRight: '0.3em' }}>
                         {word.split('').map((char, charIndex) => {
                           const globalIndex = currentText.split(' ').slice(0, wordIndex).join(' ').length + (wordIndex > 0 ? 1 : 0) + charIndex;
-                          const isCursor = globalIndex === userInput.length && isFocused && !currentSession;
                           return (
                             <span
                               key={globalIndex}
                               className={`${getCharacterClass(globalIndex)}`}
                               style={{ position: 'relative' }}
+                              data-idx={globalIndex}
                             >
-                              {isCursor && (
-                                <span
-                                  className="cursor-line"
-                                  style={{
-                                    position: 'absolute',
-                                    left: '0',
-                                    top: '0',
-                                    width: '2px',
-                                    height: '100%',
-                                    backgroundColor: '#3b82f6',
-                                    animation: 'cursor-blink 1s infinite',
-                                    zIndex: 10
-                                  }}
-                                />
-                              )}
                               {char}
                             </span>
                           );
@@ -565,22 +648,8 @@ export default function TypingApp() {
                           <span
                             className={`${getCharacterClass(currentText.split(' ').slice(0, wordIndex + 1).join(' ').length)}`}
                             style={{ position: 'relative' }}
+                            data-idx={currentText.split(' ').slice(0, wordIndex + 1).join(' ').length}
                           >
-                            {currentText.split(' ').slice(0, wordIndex + 1).join(' ').length === userInput.length && isFocused && !currentSession && (
-                              <span
-                                className="cursor-line"
-                                style={{
-                                  position: 'absolute',
-                                  left: '0',
-                                  top: '0',
-                                  width: '2px',
-                                  height: '100%',
-                                  backgroundColor: '#3b82f6',
-                                  animation: 'cursor-blink 1s infinite',
-                                  zIndex: 10
-                                }}
-                              />
-                            )}
                             {'\u00A0'}
                           </span>
                         )}
@@ -776,36 +845,37 @@ export default function TypingApp() {
                     tabIndex={0}
                     style={{ 
                       outline: 'none',
-                      lineHeight: '1.8'
+                      lineHeight: '1.8',
+                      position: 'relative'
                     }}
                   >
-
+                    {/* Smooth animated caret overlay */}
+                    <div
+                      ref={cursorRef}
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        width: '2px',
+                        height: '1em',
+                        backgroundColor: '#3b82f6',
+                        transform: 'translate(0px, 0px)',
+                        willChange: 'transform',
+                        zIndex: 10,
+                        pointerEvents: 'none',
+                      }}
+                    />
                     {currentText.split(' ').map((word, wordIndex) => (
                       <span key={wordIndex} style={{ whiteSpace: 'nowrap', display: 'inline-block', marginRight: '0.3em' }}>
                         {word.split('').map((char, charIndex) => {
                           const globalIndex = currentText.split(' ').slice(0, wordIndex).join(' ').length + (wordIndex > 0 ? 1 : 0) + charIndex;
-                          const isCursor = globalIndex === userInput.length && isFocused && !currentSession;
                           return (
                             <span
                               key={globalIndex}
                               className={`${getCharacterClass(globalIndex)}`}
                               style={{ position: 'relative' }}
+                              data-idx={globalIndex}
                             >
-                              {isCursor && (
-                                <span
-                                  className="cursor-line"
-                                  style={{
-                                    position: 'absolute',
-                                    left: '0',
-                                    top: '0',
-                                    width: '2px',
-                                    height: '100%',
-                                    backgroundColor: '#3b82f6',
-                                    animation: 'cursor-blink 1s infinite',
-                                    zIndex: 10
-                                  }}
-                                />
-                              )}
                               {char}
                             </span>
                           );
@@ -814,22 +884,8 @@ export default function TypingApp() {
                           <span
                             className={`${getCharacterClass(currentText.split(' ').slice(0, wordIndex + 1).join(' ').length)}`}
                             style={{ position: 'relative' }}
+                            data-idx={currentText.split(' ').slice(0, wordIndex + 1).join(' ').length}
                           >
-                            {currentText.split(' ').slice(0, wordIndex + 1).join(' ').length === userInput.length && isFocused && !currentSession && (
-                              <span
-                                className="cursor-line"
-                                style={{
-                                  position: 'absolute',
-                                  left: '0',
-                                  top: '0',
-                                  width: '2px',
-                                  height: '100%',
-                                  backgroundColor: '#3b82f6',
-                                  animation: 'cursor-blink 1s infinite',
-                                  zIndex: 10
-                                }}
-                              />
-                            )}
                             {'\u00A0'}
                           </span>
                         )}
