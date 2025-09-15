@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createTypingSessionLog, type SessionLogEntry } from "@/lib/sessionLog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +23,13 @@ interface TypingSession {
   duration: number; // in seconds
   mode: string;
   text: string;
+  // Additional metrics
+  grossWPM?: number; // chars/5 per minute
+  netWPM?: number;   // gross - uncorrected errors per minute
+  keystrokes?: number;
+  mistakes?: number; // keys that didn't match expected
+  backspaces?: number;
+  uncorrectedErrors?: number; // mismatches remaining at completion
 }
 
 interface TypingStats {
@@ -79,6 +87,23 @@ export default function TypingApp() {
   const cursorRef = useRef<HTMLDivElement>(null);
   const prevPosRef = useRef<{ left: number; top: number } | null>(null);
   const cursorAnimRef = useRef<Animation | null>(null);
+  const [keystrokes, setKeystrokes] = useState(0);
+  const [mistakes, setMistakes] = useState(0);
+  const [backspaces, setBackspaces] = useState(0);
+  const [lastSession, setLastSession] = useState<TypingSession | null>(null);
+  const typingLog = useMemo(() => createTypingSessionLog<TypingSession>(), []);
+  const [todayEntries, setTodayEntries] = useState<SessionLogEntry<TypingSession>[]>([]);
+
+  // Precompute words and word start indices for efficient rendering
+  const words = useMemo(() => currentText.split(' '), [currentText]);
+  const wordStarts = useMemo(() => {
+    let acc = 0;
+    return words.map((w, i) => {
+      const start = acc;
+      acc += w.length + 1; // +1 for the space after each word
+      return start;
+    });
+  }, [words]);
 
   // Load stats and daily target from localStorage
   useEffect(() => {
@@ -115,6 +140,30 @@ export default function TypingApp() {
         localStorage.setItem('typing-daily-target', JSON.stringify(newTarget));
       }
     }
+
+    // Load today's last session
+    try {
+      const today = typingLog.readToday();
+      setTodayEntries(today);
+      if (today.length > 0) setLastSession(today[today.length - 1].data);
+    } catch {}
+
+    // Live updates when sessions are appended (or storage changes in another tab)
+    const refresh = () => {
+      try {
+        setTodayEntries(typingLog.readToday());
+      } catch {}
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key && e.key.startsWith("session-log:typing:")) refresh();
+    };
+    const onInternal = () => refresh();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("sessionlog-update", onInternal as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("sessionlog-update", onInternal as EventListener);
+    };
   }, []);
 
   // Generate new text when length changes
@@ -168,6 +217,7 @@ export default function TypingApp() {
       } else if (e.key === 'Backspace') {
         if (userInput.length > 0) {
           setUserInput(prev => prev.slice(0, -1));
+          setBackspaces((b) => b + 1);
         }
       } else if (e.key.length === 1) {
         // Start session on first character
@@ -177,6 +227,10 @@ export default function TypingApp() {
         }
 
         const newInput = userInput + e.key;
+        setKeystrokes((k) => k + 1);
+        if (e.key !== currentText[userInput.length]) {
+          setMistakes((m) => m + 1);
+        }
         setUserInput(newInput);
 
         // Check if typing is complete
@@ -220,8 +274,8 @@ export default function TypingApp() {
 
     const containerRect = container.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
-    const left = targetRect.left - containerRect.left;
-    const top = targetRect.top - containerRect.top;
+    const left = targetRect.left - containerRect.left + container.scrollLeft;
+    const top = targetRect.top - containerRect.top + container.scrollTop;
 
     // Adjust caret height to target line height
     cursor.style.height = `${targetRect.height}px`;
@@ -280,6 +334,25 @@ export default function TypingApp() {
     cursorAnimRef.current.oncancel = clear;
 
     prevPosRef.current = { left, top };
+
+    // Auto-scroll to keep caret in view
+    const margin = 24; // px
+    const viewTop = container.scrollTop;
+    const viewBottom = viewTop + container.clientHeight;
+    const caretBottom = top + targetRect.height;
+    if (top < viewTop + margin) {
+      container.scrollTop = Math.max(0, top - margin);
+    } else if (caretBottom > viewBottom - margin) {
+      container.scrollTop = caretBottom - container.clientHeight + margin;
+    }
+    const viewLeft = container.scrollLeft;
+    const viewRight = viewLeft + container.clientWidth;
+    const caretRight = left + 2; // caret width ~2px
+    if (left < viewLeft + margin) {
+      container.scrollLeft = Math.max(0, left - margin);
+    } else if (caretRight > viewRight - margin) {
+      container.scrollLeft = caretRight - container.clientWidth + margin;
+    }
   }, [userInput, isFocused, currentSession, currentText]);
 
   const generateNewText = useCallback(() => {
@@ -308,6 +381,9 @@ export default function TypingApp() {
     setElapsedTime(0);
     setCurrentSession(null);
     setIsFocused(true);
+    setKeystrokes(0);
+    setMistakes(0);
+    setBackspaces(0);
     setTimeout(() => textContainerRef.current?.focus(), 100);
   }, [length]);
 
@@ -315,8 +391,9 @@ export default function TypingApp() {
     setIsActive(false);
     
     const duration = Math.max(elapsedTime, 1);
-    const words = finalInput.trim().split(/\s+/).length;
-    const wpm = Math.round((words / duration) * 60);
+    const minutes = duration / 60;
+    const charsTyped = finalInput.length;
+    const grossWPM = (charsTyped / 5) / minutes;
     
     // Calculate accuracy
     let correctChars = 0;
@@ -326,15 +403,23 @@ export default function TypingApp() {
       }
     }
     const accuracy = Math.round((correctChars / currentText.length) * 100);
+    const uncorrectedErrors = currentText.length - correctChars;
+    const netWPM = Math.max(0, grossWPM - (uncorrectedErrors / minutes));
 
     const session: TypingSession = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
-      wpm,
+      wpm: Math.round(netWPM),
       accuracy,
       duration,
       mode: length,
-      text: currentText.substring(0, 50) + '...'
+      text: currentText.substring(0, 50) + '...',
+      grossWPM: Math.round(grossWPM),
+      netWPM: Math.round(netWPM),
+      keystrokes,
+      mistakes,
+      backspaces,
+      uncorrectedErrors,
     };
 
     setCurrentSession(session);
@@ -343,7 +428,7 @@ export default function TypingApp() {
   }, [elapsedTime, currentText, length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveSession = useCallback((session: TypingSession) => {
-    // Save session to history
+    // Save session to history (legacy list)
     const savedSessions = localStorage.getItem('typing-sessions');
     let sessions: TypingSession[] = savedSessions ? JSON.parse(savedSessions) : [];
     sessions.unshift(session); // Add to beginning
@@ -351,6 +436,13 @@ export default function TypingApp() {
     // Keep only last 50 sessions
     sessions = sessions.slice(0, 50);
     localStorage.setItem('typing-sessions', JSON.stringify(sessions));
+
+    // Append to today's session log and update last session
+    typingLog.append(session);
+    setLastSession(session);
+    try {
+      setTodayEntries(typingLog.readToday());
+    } catch {}
 
     // Update stats
     if (stats) {
@@ -408,6 +500,9 @@ export default function TypingApp() {
     setElapsedTime(0);
     setCurrentSession(null);
     setIsFocused(true);
+    setKeystrokes(0);
+    setMistakes(0);
+    setBackspaces(0);
     textContainerRef.current?.focus();
   };
 
@@ -444,8 +539,14 @@ export default function TypingApp() {
 
   const getCurrentWPM = () => {
     if (!isActive || elapsedTime === 0) return 0;
-    const words = userInput.trim().split(/\s+/).length;
-    return Math.round((words / Math.max(elapsedTime, 1)) * 60);
+    const minutes = elapsedTime / 60;
+    const gross = (userInput.length / 5) / minutes;
+    let currentErrors = 0;
+    for (let i = 0; i < userInput.length; i++) {
+      if (userInput[i] !== currentText[i]) currentErrors++;
+    }
+    const net = Math.max(0, gross - currentErrors / minutes);
+    return Math.round(net);
   };
 
   const getCurrentAccuracy = () => {
@@ -629,10 +730,10 @@ export default function TypingApp() {
                         pointerEvents: 'none',
                       }}
                     />
-                    {currentText.split(' ').map((word, wordIndex) => (
+                    {words.map((word, wordIndex) => (
                       <span key={wordIndex} style={{ whiteSpace: 'nowrap', display: 'inline-block', marginRight: '0.3em' }}>
                         {word.split('').map((char, charIndex) => {
-                          const globalIndex = currentText.split(' ').slice(0, wordIndex).join(' ').length + (wordIndex > 0 ? 1 : 0) + charIndex;
+                          const globalIndex = wordStarts[wordIndex] + charIndex;
                           return (
                             <span
                               key={globalIndex}
@@ -644,11 +745,11 @@ export default function TypingApp() {
                             </span>
                           );
                         })}
-                        {wordIndex < currentText.split(' ').length - 1 && (
+                        {wordIndex < words.length - 1 && (
                           <span
-                            className={`${getCharacterClass(currentText.split(' ').slice(0, wordIndex + 1).join(' ').length)}`}
+                            className={`${getCharacterClass(wordStarts[wordIndex] + word.length)}`}
                             style={{ position: 'relative' }}
-                            data-idx={currentText.split(' ').slice(0, wordIndex + 1).join(' ').length}
+                            data-idx={wordStarts[wordIndex] + word.length}
                           >
                             {'\u00A0'}
                           </span>
@@ -865,10 +966,10 @@ export default function TypingApp() {
                         pointerEvents: 'none',
                       }}
                     />
-                    {currentText.split(' ').map((word, wordIndex) => (
+                    {words.map((word, wordIndex) => (
                       <span key={wordIndex} style={{ whiteSpace: 'nowrap', display: 'inline-block', marginRight: '0.3em' }}>
                         {word.split('').map((char, charIndex) => {
-                          const globalIndex = currentText.split(' ').slice(0, wordIndex).join(' ').length + (wordIndex > 0 ? 1 : 0) + charIndex;
+                          const globalIndex = wordStarts[wordIndex] + charIndex;
                           return (
                             <span
                               key={globalIndex}
@@ -880,11 +981,11 @@ export default function TypingApp() {
                             </span>
                           );
                         })}
-                        {wordIndex < currentText.split(' ').length - 1 && (
+                        {wordIndex < words.length - 1 && (
                           <span
-                            className={`${getCharacterClass(currentText.split(' ').slice(0, wordIndex + 1).join(' ').length)}`}
+                            className={`${getCharacterClass(wordStarts[wordIndex] + word.length)}`}
                             style={{ position: 'relative' }}
-                            data-idx={currentText.split(' ').slice(0, wordIndex + 1).join(' ').length}
+                            data-idx={wordStarts[wordIndex] + word.length}
                           >
                             {'\u00A0'}
                           </span>
@@ -896,54 +997,30 @@ export default function TypingApp() {
               </Card>
             </div>
 
-            {/* Stats and Info - 1 column */}
-            <div className="flex flex-col gap-6">
-              {/* Current Session Stats */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-black font-playfair border-b-2 border-black pb-2">
-                  CURRENT SESSION
-                </h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <Card 
-                    className="border-2 border-black bg-white text-center"
-                    style={{ borderRadius: '0px', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="text-2xl font-bold text-black font-playfair">
-                        {currentSession ? currentSession.wpm : getCurrentWPM()}
+            {/* Today's Sessions - recent to oldest */}
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-bold text-black font-playfair border-b border-black pb-1">
+                TODAY'S SESSIONS
+              </h3>
+              {todayEntries.length === 0 ? (
+                <div className="text-xs text-gray-600">No sessions yet today.</div>
+              ) : (
+                <ul className="divide-y divide-gray-200 border border-gray-200 bg-white">
+                  {[...todayEntries].reverse().map((e) => (
+                    <li key={e.id} className="px-3 py-2 flex items-center justify-between text-sm">
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-gray-600 text-xs">
+                          Session {e.index}
+                        </span>
+                        <span className="font-semibold">{e.data.wpm} WPM</span>
+                        <span className="text-gray-600">{e.data.accuracy}%</span>
+                        <span className="text-gray-600">{formatTime(e.data.duration)}</span>
                       </div>
-                      <div className="text-xs text-gray-600 font-bold tracking-wider">WPM</div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className="border-2 border-black bg-white text-center"
-                    style={{ borderRadius: '0px', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="text-2xl font-bold text-black font-playfair">
-                        {currentSession ? currentSession.accuracy : getCurrentAccuracy()}%
-                      </div>
-                      <div className="text-xs text-gray-600 font-bold tracking-wider">ACCURACY</div>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className="border-2 border-black bg-white text-center col-span-2"
-                    style={{ borderRadius: '0px', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="text-2xl font-bold text-black font-playfair">
-                        {formatTime(elapsedTime)}
-                      </div>
-                      <div className="text-xs text-gray-600 font-bold tracking-wider">TIME</div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-
+                      <div className="text-xs text-gray-500 truncate max-w-[45%]">{e.data.text}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
           )}

@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, LogIn } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
+import { Calendar, Clock } from "lucide-react";
+import { 
+  SignInButton, 
+  SignUpButton, 
+  SignedIn, 
+  SignedOut,
+  useUser,
+  useClerk
+} from '@clerk/nextjs';
 import UserBubble from "@/components/auth/user-bubble";
 
 /**
@@ -18,8 +24,6 @@ export default function TopBar() {
 
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [hidden, setHidden] = useState(false);
-  const router = useRouter();
-  const { user, isLoaded, isSignedIn } = useUser();
 
   // Clock
   useEffect(() => {
@@ -76,21 +80,16 @@ export default function TopBar() {
 
               {/* Authentication UI */}
               <div className="flex items-center gap-2 border-l border-gray-300 pl-4">
-                {!isLoaded ? (
-                  <div className="text-xs text-gray-500">Loading...</div>
-                ) : isSignedIn && user ? (
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="border border-gray-300 hover:bg-gray-100 text-xs h-6 px-2 rounded text-gray-700 font-medium transition-colors">
+                      Sign In
+                    </button>
+                  </SignInButton>
+                </SignedOut>
+                <SignedIn>
                   <UserBubble />
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push("/sign-in")}
-                    className="border border-gray-300 hover:bg-gray-100 text-xs h-6 px-2"
-                  >
-                    <LogIn className="w-3 h-3 mr-1" />
-                    Sign In
-                  </Button>
-                )}
+                </SignedIn>
               </div>
             </div>
           </div>

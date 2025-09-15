@@ -3,7 +3,9 @@ import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { LucideIcon } from "lucide-react"
-import { Grid3X3, Calendar, Clock } from "lucide-react"
+import { Grid3X3 } from "lucide-react"
+import { Tooltip, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 type DockPosition = 'bottom' | 'left' | 'right'
 
@@ -74,7 +76,7 @@ const appsVariants = {
 const PositionSelector: React.FC<{ value: DockPosition; onChange?: (p: DockPosition) => void }>
   = ({ value, onChange }) => {
   return (
-    <label className="hidden sm:flex items-center gap-2 border-2 border-black bg-white px-2 py-1 text-xs font-bold tracking-wider">
+    <label className="flex items-center gap-2 border-2 border-black bg-white px-2 py-1 text-xs font-bold tracking-wider">
       <span>DOCK</span>
       <select
         className="bg-transparent outline-none cursor-pointer"
@@ -152,60 +154,14 @@ const DockIconButton = React.memo(
       { icon: Icon, label, onClick, className, isActive = false, showLabel = false, position = 'bottom', index = 0 },
       ref
     ) => {
-      const [isHovered, setIsHovered] = React.useState(false)
-
-      const getTooltipClasses = () => {
+      const getTooltipSide = () => {
         switch (position) {
           case 'left':
-            // Alternate positioning both horizontally and vertically to prevent overlap
-            const leftHorizontal = index % 2 === 0 ? "-right-16" : "-right-20"
-            const leftVertical = index % 3 === 0 ? "top-1/2" : index % 3 === 1 ? "top-1/3" : "top-2/3"
-            return `hidden sm:block absolute ${leftHorizontal} ${leftVertical} -translate-y-1/2`
+            return 'right' as const
           case 'right':
-            // Alternate positioning both horizontally and vertically to prevent overlap
-            const rightHorizontal = index % 2 === 0 ? "-left-16" : "-left-20"
-            const rightVertical = index % 3 === 0 ? "top-1/2" : index % 3 === 1 ? "top-1/3" : "top-2/3"
-            return `hidden sm:block absolute ${rightHorizontal} ${rightVertical} -translate-y-1/2`
+            return 'left' as const
           default:
-            return "hidden sm:block absolute -top-12 left-1/2 -translate-x-1/2"
-        }
-      }
-
-      const getTooltipArrow = () => {
-        switch (position) {
-          case 'left':
-            return (
-              <div
-                className="absolute left-full top-1/2 -translate-y-1/2 w-0 h-0"
-                style={{
-                  borderTop: "4px solid transparent",
-                  borderBottom: "4px solid transparent",
-                  borderLeft: "4px solid black"
-                }}
-              />
-            )
-          case 'right':
-            return (
-              <div
-                className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0"
-                style={{
-                  borderTop: "4px solid transparent",
-                  borderBottom: "4px solid transparent",
-                  borderRight: "4px solid black"
-                }}
-              />
-            )
-          default:
-            return (
-              <div
-                className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
-                style={{
-                  borderLeft: "4px solid transparent",
-                  borderRight: "4px solid transparent",
-                  borderTop: "4px solid black"
-                }}
-              />
-            )
+            return 'top' as const
         }
       }
 
@@ -247,65 +203,54 @@ const DockIconButton = React.memo(
       }
 
       return (
-        <motion.button
-          ref={ref}
-          whileHover={getHoverAnimation()}
-          whileTap={{
-            scale: 0.98,
-            transition: { duration: 0.05 }
-          }}
-          onClick={onClick}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className={cn(
-            "relative group p-2 rounded-2xl bg-white/70 backdrop-blur-lg shadow-md",
-            "sm:p-3 sm:rounded-none sm:border-2 sm:border-black sm:bg-white sm:shadow-none",
-            "hover:bg-white/80 transition-colors duration-200",
-            "focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2",
-            isActive &&
-              "bg-black text-white hover:bg-gray-800 sm:bg-black sm:text-white sm:hover:bg-gray-800",
-            className
-          )}
-        >
-          <Icon
-            className={cn(
-              "w-7 h-7 sm:w-5 sm:h-5 transition-colors",
-              isActive ? "text-white" : "text-black"
-            )}
-          />
-
-          {/* Tooltip for desktop */}
-          <AnimatePresence>
-            {isHovered && (
-              <motion.div
-                initial={{ opacity: 0, y: 5, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                transition={{ duration: 0.15 }}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <motion.button
+              ref={ref}
+              whileHover={getHoverAnimation()}
+              whileTap={{
+                scale: 0.98,
+                transition: { duration: 0.05 }
+              }}
+              onClick={onClick}
+              className={cn(
+                "relative group p-3 border-2 border-black bg-white",
+                "hover:bg-white/80 transition-colors duration-200",
+                "focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2",
+                isActive &&
+                  "bg-black text-white hover:bg-gray-800",
+                className
+              )}
+            >
+              <Icon
                 className={cn(
-                  getTooltipClasses(),
-                  "px-2 py-1 border-2 border-black bg-white text-black",
-                  "text-xs font-medium whitespace-nowrap pointer-events-none z-[100]"
+                  "w-5 h-5 transition-colors",
+                  isActive ? "text-white" : "text-black"
                 )}
-                style={{ boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)" }}
-              >
-                {label}
-                {getTooltipArrow()}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              />
 
-          {/* Persistent label for mobile */}
-          <div className={cn(getLabelClasses(), "sm:hidden")}>
-            {label}
-          </div>
-          {/* Optional label for larger screens */}
-          {showLabel && (
-            <div className={cn(getLabelClasses(), "hidden sm:block")}>
+              {/* Optional label for larger screens */}
+              {showLabel && (
+                <div className={getLabelClasses()}>
+                  {label}
+                </div>
+              )}
+            </motion.button>
+          </TooltipTrigger>
+          <TooltipPrimitive.Portal>
+            <TooltipPrimitive.Content
+              side={getTooltipSide()}
+              sideOffset={8}
+              className={cn(
+                "px-2 py-1 border-2 border-black bg-white text-black",
+                "text-xs font-medium whitespace-nowrap z-[100]"
+              )}
+              style={{ boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)" }}
+            >
               {label}
-            </div>
-          )}
-        </motion.button>
+            </TooltipPrimitive.Content>
+          </TooltipPrimitive.Portal>
+        </Tooltip>
       )
     }
   )
@@ -356,11 +301,11 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
     const getDockPositionClasses = () => {
       switch (position) {
         case 'left':
-          return "fixed left-4 top-1/2 -translate-y-1/2 z-50 sm:left-6"
+          return "fixed left-6 top-1/2 -translate-y-1/2 z-50"
         case 'right':
-          return "fixed right-4 top-1/2 -translate-y-1/2 z-50 sm:right-6"
+          return "fixed right-6 top-1/2 -translate-y-1/2 z-50"
         default:
-          return "fixed left-1/2 -translate-x-1/2 z-50 bottom-4 sm:bottom-6"
+          return "fixed left-1/2 -translate-x-1/2 z-50 bottom-6"
       }
     }
 
@@ -369,29 +314,27 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
       
       if (isVertical) {
         return cn(
-          "flex flex-col items-center gap-4 px-3 py-5 rounded-[28px] bg-white/80 backdrop-blur-xl shadow-lg border border-white/20",
-          "sm:gap-1 sm:p-2 sm:border-2 sm:border-black sm:bg-white sm:backdrop-blur-sm sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:rounded-none"
+          "flex flex-col items-center gap-1 p-2 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
         )
       }
       
       return cn(
-        "flex items-center gap-4 px-5 py-3 rounded-[28px] bg-white/80 backdrop-blur-xl shadow-lg border border-white/20",
-        "sm:gap-1 sm:p-2 sm:border-2 sm:border-black sm:bg-white sm:backdrop-blur-sm sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:rounded-none"
+        "flex items-center gap-1 p-2 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
       )
     }
 
     const getSeparatorClasses = () => {
       const isVertical = position === 'left' || position === 'right'
       return isVertical 
-        ? "hidden sm:block h-px w-8 bg-black my-2" 
-        : "hidden sm:block w-px h-8 bg-black mx-2"
+        ? "h-px w-8 bg-black my-2" 
+        : "w-px h-8 bg-black mx-2"
     }
 
     const getTimeDisplayClasses = () => {
       const isVertical = position === 'left' || position === 'right'
       return isVertical 
-        ? "hidden sm:flex flex-col items-center gap-2 py-3"
-        : "hidden sm:flex items-center gap-2 px-3"
+        ? "flex flex-col items-center gap-2 py-3"
+        : "flex items-center gap-2 px-3"
     }
 
     const getLabelContainerClasses = () => {
@@ -399,15 +342,15 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
       
       if (isVertical) {
         const sideClass = position === 'left' ? 'ml-2' : 'mr-2'
-        return `hidden sm:flex items-center justify-center ${sideClass}`
+        return `flex items-center justify-center ${sideClass}`
       }
       
-      return "hidden sm:flex items-center justify-center mt-2"
+      return "flex items-center justify-center mt-2"
     }
     // no composed ref needed; parent can still pass ref directly
 
       return (
-        <>
+        <TooltipProvider>
           <div
             ref={ref}
             className={cn(
@@ -444,19 +387,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
                 <div className={getSeparatorClasses()} />
               )}
 
-              {/* Date & Time Display  only on bottom */}
-              {currentTime && position === 'bottom' && (
-                <div className={getTimeDisplayClasses()}>
-                  <div className="flex items-center gap-2 border-2 border-black px-2 py-1 bg-white">
-                    <Calendar className="w-4 h-4 text-black" />
-                    <span className="text-xs font-medium text-black">{formatDate(currentTime)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 border-2 border-black px-2 py-1 bg-white">
-                    <Clock className="w-4 h-4 text-black" />
-                    <span className="text-xs font-medium text-black">{formatTime(currentTime)}</span>
-                  </div>
-                </div>
-              )}
+              
             </div>
 
             {showLabels && (
@@ -474,7 +405,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
               <Apps items={items} onClose={closeLaunchpad} />
             )}
           </AnimatePresence>
-        </>
+        </TooltipProvider>
       )
   }
 )

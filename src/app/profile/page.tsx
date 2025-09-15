@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Calendar } from "lucide-react";
 import SignOutCTA from "@/components/auth/sign-out-button";
+import dynamic from 'next/dynamic';
+
+const TodaySessions = dynamic(() => import('@/components/profile/TodaySessions'), { ssr: false });
 
 export default async function ProfilePage() {
   const { userId } = await auth();
@@ -85,6 +88,10 @@ export default async function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+        {/* Today's sessions (client-side) */}
+        <div className="mt-8">
+          <TodaySessions />
+        </div>
       </div>
     </div>
   );
