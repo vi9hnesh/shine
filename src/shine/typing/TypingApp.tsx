@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createTypingSessionLog, type SessionLogEntry } from "@/lib/sessionLog";
+import TypingSettingsPanel from "@/shine/typing/TypingSettingsPanel";
+import { useTypingSettings } from "@/shine/typing/typingSettings";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -13,6 +15,7 @@ import {
   Layout,
   Focus,
   BarChart3,
+  Settings as SettingsIcon,
 } from "lucide-react";
 
 interface TypingSession {
@@ -81,7 +84,7 @@ export default function TypingApp() {
   const [dailyTarget, setDailyTarget] = useState<DailyTarget | null>(null);
   const [showTargetInput, setShowTargetInput] = useState(false);
   const [targetInput, setTargetInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'basic' | 'focus' | 'stats'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'focus' | 'stats' | 'settings'>('basic');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -90,15 +93,16 @@ export default function TypingApp() {
   const [keystrokes, setKeystrokes] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [backspaces, setBackspaces] = useState(0);
-  const [lastSession, setLastSession] = useState<TypingSession | null>(null);
+  // lastSession removed (we show today's list instead)
   const typingLog = useMemo(() => createTypingSessionLog<TypingSession>(), []);
   const [todayEntries, setTodayEntries] = useState<SessionLogEntry<TypingSession>[]>([]);
+  const [typingSettings] = useTypingSettings();
 
   // Precompute words and word start indices for efficient rendering
   const words = useMemo(() => currentText.split(' '), [currentText]);
   const wordStarts = useMemo(() => {
     let acc = 0;
-    return words.map((w, i) => {
+    return words.map((w) => {
       const start = acc;
       acc += w.length + 1; // +1 for the space after each word
       return start;
@@ -133,19 +137,27 @@ export default function TypingApp() {
         // New day, reset counter
         const newTarget: DailyTarget = {
           date: today,
-          target: target.target,
+          target: typingSettings.sessionsPerDay ?? target.target,
           completed: 0
         };
         setDailyTarget(newTarget);
         localStorage.setItem('typing-daily-target', JSON.stringify(newTarget));
       }
+    } else {
+      const newTarget: DailyTarget = {
+        date: today,
+        target: typingSettings.sessionsPerDay ?? 0,
+        completed: 0,
+      };
+      setDailyTarget(newTarget);
+      localStorage.setItem('typing-daily-target', JSON.stringify(newTarget));
     }
 
     // Load today's last session
     try {
       const today = typingLog.readToday();
       setTodayEntries(today);
-      if (today.length > 0) setLastSession(today[today.length - 1].data);
+      // no-op: we render from todayEntries now
     } catch {}
 
     // Live updates when sessions are appended (or storage changes in another tab)
@@ -439,7 +451,7 @@ export default function TypingApp() {
 
     // Append to today's session log and update last session
     typingLog.append(session);
-    setLastSession(session);
+    // no-op: we render from todayEntries now
     try {
       setTodayEntries(typingLog.readToday());
     } catch {}
@@ -603,10 +615,19 @@ export default function TypingApp() {
                   variant={activeTab === 'stats' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setActiveTab('stats')}
-                  className="rounded-none px-3"
+                  className="border-r-2 border-black rounded-none px-3"
                 >
                   <BarChart3 className="w-4 h-4 mr-1" />
                   Stats
+                </Button>
+                <Button
+                  variant={activeTab === 'settings' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('settings')}
+                  className="rounded-none px-3"
+                >
+                  <SettingsIcon className="w-4 h-4 mr-1" />
+                  Settings
                 </Button>
               </div>
             </div>
@@ -845,6 +866,12 @@ export default function TypingApp() {
                   </div>
                 </div>
               )}
+            </div>
+          ) : activeTab === 'settings' ? (
+            <div className="flex flex-col gap-6 h-[calc(100vh-180px)]">
+              <div className="max-w-xl">
+                <TypingSettingsPanel />
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">

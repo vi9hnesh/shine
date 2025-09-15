@@ -30,20 +30,19 @@ export default function TodaySessions() {
   const log = useMemo(() => createTypingSessionLog<TypingSession>(), []);
   const [entries, setEntries] = useState<SessionLogEntry<TypingSession>[]>([]);
 
-  const refresh = () => {
-    try {
-      setEntries(log.readToday());
-    } catch {
-      setEntries([]);
-    }
-  };
-
   useEffect(() => {
+    const refresh = () => {
+      try {
+        setEntries(log.readToday());
+      } catch {
+        setEntries([]);
+      }
+    };
     refresh();
     const onStorage = (e: StorageEvent) => {
       if (e.key && e.key.startsWith("session-log:typing:")) refresh();
     };
-    const onInternal = (e: Event) => refresh();
+    const onInternal = (_e: Event) => refresh();
     window.addEventListener("storage", onStorage);
     window.addEventListener("sessionlog-update", onInternal);
     return () => {
@@ -79,4 +78,3 @@ export default function TodaySessions() {
     </div>
   );
 }
-

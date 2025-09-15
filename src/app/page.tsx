@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { createLearningCounter } from "@/lib/dailyFlag";
 
 const features = [
   {
@@ -131,6 +132,8 @@ const cardVariants = {
 
 export default function ShinePage() {
   const router = useRouter();
+  const learning = useMemo(() => createLearningCounter(), []);
+  const [learningDays, setLearningDays] = useState(0);
 
   // Separate effect for preloading to run only once
   useEffect(() => {
@@ -145,6 +148,17 @@ export default function ShinePage() {
     
     return () => clearTimeout(timeoutId);
   }, [router]); // Include router dependency
+
+  // Sync and decay the learning flag once per day
+  useEffect(() => {
+    try {
+      const v = learning.tick();
+      setLearningDays(v);
+      const onUpdate = (_e: Event) => setLearningDays(learning.get());
+      window.addEventListener("dailyflag:update", onUpdate);
+      return () => window.removeEventListener("dailyflag:update", onUpdate);
+    } catch {}
+  }, [learning]);
 
   const handleFeatureClick = (featureId: string) => {
     const implementedFeatures = ['typing', 'reflect', 'reads', 'pomodoro', 'newsletter', 'appreciate', 'lounge'];
@@ -180,7 +194,7 @@ export default function ShinePage() {
             alt="Shine"
             width={1200}
             height={400}
-            className="w-full h-40 sm:h-48 md:h-56 object-cover opacity-90 filter brightness-110 contrast-105"
+            className="w-full h-32 sm:h-44 md:h-56 object-cover opacity-90 filter brightness-110 contrast-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           {/* Simple tagline */}
@@ -242,14 +256,14 @@ export default function ShinePage() {
                       boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.1)',
                     }}
                   >
-                    <CardHeader className="pb-2 p-3 sm:p-4">
+                    <CardHeader className="pb-1 p-2 sm:p-3 md:p-4">
                       <div className="flex items-center justify-between min-w-0">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="p-2 border-2 border-gray-900 bg-gray-900 flex-shrink-0">
-                            <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                          <div className="p-1.5 sm:p-2 border-2 border-gray-900 bg-gray-900 flex-shrink-0">
+                            <feature.icon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <CardTitle className="text-base sm:text-lg text-gray-900 mb-1 truncate font-serif">
+                            <CardTitle className="text-sm sm:text-base md:text-lg text-gray-900 mb-1 truncate font-serif">
                               {feature.title}
                             </CardTitle>
                           </div>
@@ -264,13 +278,15 @@ export default function ShinePage() {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-0 p-3 sm:p-4">
-                      <div className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider font-medium mb-2">
+                    <CardContent className="pt-0 p-2 sm:p-3 md:p-4">
+                      <div className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider font-medium mb-1 sm:mb-2">
                         {feature.category}
                       </div>
-                      <CardDescription className="text-gray-700 leading-snug text-sm sm:text-base font-light font-open">
-                        {feature.description}
-                      </CardDescription>
+                      {learningDays > 0 && (
+                        <CardDescription className="text-gray-700 leading-snug text-xs sm:text-sm md:text-base font-light font-open">
+                          {feature.description}
+                        </CardDescription>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>

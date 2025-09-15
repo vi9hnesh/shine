@@ -151,7 +151,7 @@ const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
 const DockIconButton = React.memo(
   React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
     (
-      { icon: Icon, label, onClick, className, isActive = false, showLabel = false, position = 'bottom', index = 0 },
+      { icon: Icon, label, onClick, className, isActive = false, showLabel = false, position = 'bottom', index: _index = 0 },
       ref
     ) => {
       const getTooltipSide = () => {

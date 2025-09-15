@@ -56,7 +56,7 @@ export default function TopBar() {
   if (!show) return null;
 
   return (
-    <div className="sticky top-0 z-50 border-b-4 border-gray-900 bg-white shadow-lg">
+    <div className="sticky top-0 z-50  border-gray-900 bg-white shadow">
       <div className="w-full">
         {/* Simple newspaper-style header without animations */}
         <div className="bg-white/95 backdrop-blur-sm border-b border-gray-300">
