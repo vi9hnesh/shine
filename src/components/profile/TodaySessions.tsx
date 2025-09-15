@@ -62,7 +62,7 @@ export default function TodaySessions() {
 
   return (
     <div className="border-2 border-gray-900 bg-white">
-      <div className="border-b border-gray-200 px-4 py-2 text-xs font-bold tracking-wider">TODAY'S SESSIONS</div>
+      <div className="border-b border-gray-200 px-4 py-2 text-xs font-bold tracking-wider">TODAY&apos;S SESSIONS</div>
       <ul className="divide-y divide-gray-200">
         {entries.map((e) => (
           <li key={e.id} className="px-4 py-3 flex items-center justify-between text-sm">

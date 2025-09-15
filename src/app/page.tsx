@@ -165,7 +165,7 @@ export default function ShinePage() {
 
 
   return (
-    <div className="h-screen relative overflow-hidden bg-gray-50 font-sans" style={{
+    <div className="min-h-screen relative overflow-x-hidden bg-gray-50 font-sans" style={{
       backgroundImage: `
         linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px),
         linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px)
@@ -180,7 +180,7 @@ export default function ShinePage() {
             alt="Shine"
             width={1200}
             height={400}
-            className="w-full h-48 object-cover opacity-90 filter brightness-110 contrast-105"
+            className="w-full h-40 sm:h-48 md:h-56 object-cover opacity-90 filter brightness-110 contrast-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           {/* Simple tagline */}
@@ -196,15 +196,15 @@ export default function ShinePage() {
         </div>
       </div>
 
-      {/* Desktop Area */}
-      <div className="relative z-10 flex-1 overflow-y-auto bg-gray-50" style={{
+      {/* Content Area */}
+      <div className="relative z-10 bg-gray-50" style={{
         backgroundImage: `
           linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px),
           linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px)
         `,
         backgroundSize: '20px 20px'
       }}>
-        <div className="max-w-7xl mx-auto p-8 h-full">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
           {/* Section Header */}
           <div className="mb-8 border-b-2 border-gray-900 pb-4">
             
@@ -215,7 +215,7 @@ export default function ShinePage() {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full"
           >
             <AnimatePresence>
               {features.map((feature) => (
@@ -242,14 +242,14 @@ export default function ShinePage() {
                       boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.1)',
                     }}
                   >
-                    <CardHeader className="pb-2 p-4">
+                    <CardHeader className="pb-2 p-3 sm:p-4">
                       <div className="flex items-center justify-between min-w-0">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="p-2 border-2 border-gray-900 bg-gray-900 flex-shrink-0">
-                            <feature.icon className="w-4 h-4 text-white" />
+                            <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <CardTitle className="text-lg text-gray-900 mb-1 truncate font-serif">
+                            <CardTitle className="text-base sm:text-lg text-gray-900 mb-1 truncate font-serif">
                               {feature.title}
                             </CardTitle>
                           </div>
@@ -264,11 +264,11 @@ export default function ShinePage() {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-0 p-4">
-                      <div className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-2">
+                    <CardContent className="pt-0 p-3 sm:p-4">
+                      <div className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider font-medium mb-2">
                         {feature.category}
                       </div>
-                      <CardDescription className="text-gray-700 leading-snug text-md font-light font-open">
+                      <CardDescription className="text-gray-700 leading-snug text-sm sm:text-base font-light font-open">
                         {feature.description}
                       </CardDescription>
                     </CardContent>
@@ -281,4 +281,4 @@ export default function ShinePage() {
       </div>
     </div>
   );
-} 
+}

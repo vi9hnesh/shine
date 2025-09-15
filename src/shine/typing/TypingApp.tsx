@@ -1000,7 +1000,7 @@ export default function TypingApp() {
             {/* Today's Sessions - recent to oldest */}
             <div className="flex flex-col gap-2">
               <h3 className="text-sm font-bold text-black font-playfair border-b border-black pb-1">
-                TODAY'S SESSIONS
+                TODAY&apos;S SESSIONS
               </h3>
               {todayEntries.length === 0 ? (
                 <div className="text-xs text-gray-600">No sessions yet today.</div>

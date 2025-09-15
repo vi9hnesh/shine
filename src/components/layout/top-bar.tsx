@@ -5,11 +5,8 @@ import { usePathname } from "next/navigation";
 import { Calendar, Clock } from "lucide-react";
 import { 
   SignInButton, 
-  SignUpButton, 
   SignedIn, 
-  SignedOut,
-  useUser,
-  useClerk
+  SignedOut
 } from '@clerk/nextjs';
 import UserBubble from "@/components/auth/user-bubble";
 

@@ -98,14 +98,14 @@ const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
       animate="visible"
       exit="hidden"
       variants={appsVariants}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30"
       style={{ backdropFilter: "blur(20px)" }}
       onClick={onClose}
     >
-      <div className="w-full max-w-4xl p-8" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-4xl p-4 sm:p-8" onClick={(e) => e.stopPropagation()}>
 
         {/* Apps grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-8">
           {items.map((item) => (
             <motion.div
               key={item.label}
@@ -124,7 +124,7 @@ const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
             >
               <div 
                 className={cn(
-                  "p-6 border-2 bg-white/20 backdrop-blur-md",
+                  "p-4 sm:p-6 border-2 bg-white/20 backdrop-blur-md",
                   "hover:bg-white/30 transition-colors duration-200",
                   "mb-3",
                   item.isActive ? "border-white bg-white/40" : "border-white/50"
@@ -134,9 +134,9 @@ const Apps: React.FC<AppsProps> = ({ items, onClose }) => {
                   boxShadow: '4px 4px 20px rgba(0,0,0,0.2)'
                 }}
               >
-                <item.icon className="w-8 h-8 text-white" />
+                <item.icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
-              <span className="text-white text-sm font-medium tracking-wide">
+              <span className="text-white text-xs sm:text-sm font-medium tracking-wide">
                 {item.label}
               </span>
             </motion.div>
@@ -270,21 +270,6 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
       setShowLaunchpad(false);
     };
 
-    const formatTime = (date: Date) => {
-      return date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-      });
-    };
-
-    const formatDate = (date: Date) => {
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric'
-      });
-    };
 
     // DnD removed. Double-click to cycle still available as a convenience when desired.
 
@@ -330,12 +315,6 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
         : "w-px h-8 bg-black mx-2"
     }
 
-    const getTimeDisplayClasses = () => {
-      const isVertical = position === 'left' || position === 'right'
-      return isVertical 
-        ? "flex flex-col items-center gap-2 py-3"
-        : "flex items-center gap-2 px-3"
-    }
 
     const getLabelContainerClasses = () => {
       const isVertical = position === 'left' || position === 'right'
